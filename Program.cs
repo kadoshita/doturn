@@ -72,7 +72,7 @@ namespace doturn
                     var messageLengthStr = BitConverter.ToString(messageLength).Replace("-", string.Empty);
                     var magicCookieStr = BitConverter.ToString(magicCookie).Replace("-", string.Empty);
                     var transactionIdStr = BitConverter.ToString(transactionId).Replace("-", string.Empty);
-                    Console.WriteLine($"{endpoint.Address}:{endpoint.Port}> length: {buffer.Length}, messageType: 0x{messageTypeStr}, messageLength: 0x{messageLengthStr}, magicCookie: 0x{magicCookieStr}, transactionId: 0x{transactionIdStr}");
+                    Console.WriteLine($"[{DateTime.Now}] {endpoint.Address}:{endpoint.Port}> length: {buffer.Length}, messageType: 0x{messageTypeStr}, messageLength: 0x{messageLengthStr}, magicCookie: 0x{magicCookieStr}, transactionId: 0x{transactionIdStr}");
                     var portBytes = BitConverter.GetBytes(endpoint.Port);
                     Array.Reverse(portBytes);
                     var portBytesXor = new byte[2];
@@ -110,8 +110,6 @@ namespace doturn
                     Array.Copy(addressBytesXor, 0, res, endPos, addressBytesXor.Length);
                     endPos += addressBytesXor.Length;
                     listener.Send(res, endPos, endpoint);
-
-                    Console.WriteLine(BitConverter.ToString(res));
                 }
             }
             catch (SocketException e)

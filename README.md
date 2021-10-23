@@ -1,2 +1,2 @@
 # doturn
-A C#(.NET Core) implementation of TURN
+A C#(.NET Core) implementation of STUN/TURN
