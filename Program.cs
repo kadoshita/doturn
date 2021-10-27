@@ -21,6 +21,10 @@ namespace doturn
                         continue;
                     }
                     var stunHeader = new StunHeader(buffer);
+                    if (Convert.ToInt32(stunHeader.transactionId) == 0)
+                    {
+                        continue;
+                    }
                     var portBytes = BitConverter.GetBytes(endpoint.Port);
                     Array.Reverse(portBytes);
                     var addressBytes = endpoint.Address.GetAddressBytes();
