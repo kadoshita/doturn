@@ -71,11 +71,12 @@ namespace doturn
             this.port = port;
             this.stunHeader = stunHeader;
         }
+        //https://github.com/coturn/coturn/blob/master/src/client/ns_turn_msg.c#L630
         public byte[] ToByte()
         {
             var resMessageType = Utils.stringToByteArray("0101");
             var resLength = Utils.stringToByteArray("000c");
-            var resType = Utils.stringToByteArray("0010");
+            var stunAttr = Utils.stringToByteArray("0010");
             var resDataLength = Utils.stringToByteArray("0008");
             var resDataAddressType = Utils.stringToByteArray("0001");
             var res = new byte[32];
@@ -88,8 +89,8 @@ namespace doturn
             endPos += this.stunHeader.magicCookie.Length;
             Array.Copy(this.stunHeader.transactionId, 0, res, endPos, this.stunHeader.transactionId.Length);
             endPos += this.stunHeader.transactionId.Length;
-            Array.Copy(resType, 0, res, endPos, resType.Length);
-            endPos += resType.Length;
+            Array.Copy(stunAttr, 0, res, endPos, stunAttr.Length);
+            endPos += stunAttr.Length;
             Array.Copy(resDataLength, 0, res, endPos, resDataLength.Length);
             endPos += resDataLength.Length;
             Array.Copy(resDataAddressType, 0, res, endPos, resDataAddressType.Length);
@@ -126,7 +127,7 @@ namespace doturn
 
             var resMessageType = Utils.stringToByteArray("0101");
             var resLength = Utils.stringToByteArray("000c");
-            var resType = Utils.stringToByteArray("0020");
+            var stunAttr = Utils.stringToByteArray("0020");
             var resDataLength = Utils.stringToByteArray("0008");
             var resDataAddressType = Utils.stringToByteArray("0001");
             var res = new byte[32];
@@ -139,8 +140,8 @@ namespace doturn
             endPos += this.stunHeader.magicCookie.Length;
             Array.Copy(this.stunHeader.transactionId, 0, res, endPos, this.stunHeader.transactionId.Length);
             endPos += this.stunHeader.transactionId.Length;
-            Array.Copy(resType, 0, res, endPos, resType.Length);
-            endPos += resType.Length;
+            Array.Copy(stunAttr, 0, res, endPos, stunAttr.Length);
+            endPos += stunAttr.Length;
             Array.Copy(resDataLength, 0, res, endPos, resDataLength.Length);
             endPos += resDataLength.Length;
             Array.Copy(resDataAddressType, 0, res, endPos, resDataAddressType.Length);
