@@ -21,7 +21,7 @@ namespace doturn
                         continue;
                     }
                     var stunHeader = new StunHeader(buffer);
-                    if (Convert.ToInt32(stunHeader.transactionId) == 0)
+                    if (BitConverter.ToInt32(stunHeader.transactionId) == 0)
                     {
                         continue;
                     }
