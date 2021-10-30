@@ -74,9 +74,9 @@ namespace doturn
         //https://github.com/coturn/coturn/blob/master/src/client/ns_turn_msg.c#L630
         public byte[] ToByte()
         {
-            var resMessageType = Utils.stringToByteArray("0101");
+            var resMessageType = Constants.StunMessage.BINDING_SUCCESS;
             var resLength = Utils.stringToByteArray("000c");
-            var stunAttr = Utils.stringToByteArray("0010");
+            var stunAttr = Constants.StunAttr.MAPPED_ADDRESS;
             var resDataLength = Utils.stringToByteArray("0008");
             var resDataAddressType = Utils.stringToByteArray("0001");
             var res = new byte[32];
@@ -125,9 +125,9 @@ namespace doturn
                 addressBytesXor[i] = (byte)(this.address[i] ^ stunHeader.magicCookie[i]);
             }
 
-            var resMessageType = Utils.stringToByteArray("0101");
+            var resMessageType = Constants.StunMessage.BINDING_SUCCESS;
             var resLength = Utils.stringToByteArray("000c");
-            var stunAttr = Utils.stringToByteArray("0020");
+            var stunAttr = Constants.StunAttr.XOR_MAPPED_ADDRESS;
             var resDataLength = Utils.stringToByteArray("0008");
             var resDataAddressType = Utils.stringToByteArray("0001");
             var res = new byte[32];

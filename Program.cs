@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Linq;
 
 namespace doturn
 {
@@ -21,27 +22,29 @@ namespace doturn
                         continue;
                     }
                     var stunHeader = new StunHeader(buffer);
-                    if (BitConverter.ToInt32(stunHeader.transactionId) == 0)
+                    if (stunHeader.transactionId.SequenceEqual(Constants.Stun.INVALID_TRANSACTION_ID))
                     {
                         continue;
                     }
-                    var portBytes = BitConverter.GetBytes(endpoint.Port);
-                    Array.Reverse(portBytes);
-                    var addressBytes = endpoint.Address.GetAddressBytes();
-                    byte[] res;
-                    if (BitConverter.ToInt32(stunHeader.magicCookie) == 0)
+                    if (stunHeader.messageType.SequenceEqual(Constants.StunMessage.BINDING))// Binding request
                     {
-                        var mappedAddress = new MappedAddress(addressBytes, portBytes, stunHeader);
-                        res = mappedAddress.ToByte();
-                    }
-                    else
-                    {
-                        var xorMappedAddress = new XorMappedAddress(addressBytes, portBytes, stunHeader);
-                        res = xorMappedAddress.ToByte();
-                    }
+                        var portBytes = BitConverter.GetBytes(endpoint.Port);
+                        Array.Reverse(portBytes);
+                        var addressBytes = endpoint.Address.GetAddressBytes();
+                        byte[] res;
+                        if (BitConverter.ToInt32(stunHeader.magicCookie) == 0)
+                        {
+                            var mappedAddress = new MappedAddress(addressBytes, portBytes, stunHeader);
+                            res = mappedAddress.ToByte();
+                        }
+                        else
+                        {
+                            var xorMappedAddress = new XorMappedAddress(addressBytes, portBytes, stunHeader);
+                            res = xorMappedAddress.ToByte();
+                        }
 
-
-                    listener.Send(res, res.Length, endpoint);
+                        listener.Send(res, res.Length, endpoint);
+                    }
                 }
             }
             catch (SocketException e)
