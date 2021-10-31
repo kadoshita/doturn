@@ -47,17 +47,50 @@ namespace doturn
     */
     class StunHeader
     {
-        public readonly byte[] messageType;
-        public readonly byte[] messageLength;
+        public readonly StunMessage messageType;
+        public readonly Int16 messageLength;
         public readonly byte[] magicCookie;
         public readonly byte[] transactionId;
 
-        public StunHeader(byte[] rawHeader)
+        public StunHeader(StunMessage messageType, Int16 messageLength, byte[] magicCookie, byte[] transactionId)
         {
-            this.messageType = rawHeader[0..2]; // 16bit
-            this.messageLength = rawHeader[2..4]; // 16bit
-            this.magicCookie = rawHeader[4..8]; // 32bit
-            this.transactionId = rawHeader[8..20]; // 96bit
+            this.messageType = messageType;
+            this.messageLength = messageLength;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
+        }
+        public static StunHeader FromRawHeader(byte[] rawHeader)
+        {
+            var messageTypeByte = rawHeader[0..2]; // 16bit
+            var messageLengthByte = rawHeader[2..4]; // 16bit
+            var magicCookieByte = rawHeader[4..8]; // 32bit
+            var transactionIdByte = rawHeader[8..20]; // 96bit
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(messageTypeByte);
+            }
+            var messageType = (StunMessage)Enum.ToObject(typeof(StunMessage), BitConverter.ToInt16(messageTypeByte));
+            var messageLength = BitConverter.ToInt16(messageLengthByte);
+            return new StunHeader(messageType, messageLength, magicCookieByte, transactionIdByte);
+        }
+        public byte[] ToByte()
+        {
+            var arr = new byte[20];
+            int endPos = 0;
+            var messageTypeByte = this.messageType.ToByte();
+            var messageLengthByte = BitConverter.GetBytes(this.messageLength);
+            Array.Copy(messageTypeByte, 0, arr, endPos, messageTypeByte.Length);
+            endPos += messageTypeByte.Length;
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(messageLengthByte);
+            }
+            Array.Copy(messageLengthByte, 0, arr, endPos, messageLengthByte.Length);
+            endPos += messageLengthByte.Length;
+            Array.Copy(this.magicCookie, 0, arr, endPos, this.magicCookie.Length);
+            endPos += this.magicCookie.Length;
+            Array.Copy(this.transactionId, 0, arr, endPos, this.transactionId.Length);
+            return arr;
         }
     }
     class MappedAddress
@@ -74,21 +107,20 @@ namespace doturn
         //https://github.com/coturn/coturn/blob/master/src/client/ns_turn_msg.c#L630
         public byte[] ToByte()
         {
-            var resMessageType = Constants.StunMessage.BINDING_SUCCESS;
-            var resLength = Utils.stringToByteArray("000c");
-            var stunAttr = Constants.StunAttr.MAPPED_ADDRESS;
-            var resDataLength = Utils.stringToByteArray("0008");
-            var resDataAddressType = Utils.stringToByteArray("0001");
+            var stunAttr = StunAttr.MAPPED_ADDRESS.ToByte();
+            var resDataLength = BitConverter.GetBytes((Int16)8);
+            var resDataAddressType = BitConverter.GetBytes((Int16)1);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(resDataLength);
+                Array.Reverse(resDataAddressType);
+            }
             var res = new byte[32];
+            var resStunHeader = new StunHeader(StunMessage.BINDING_SUCCESS, 12, this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeaderByte = resStunHeader.ToByte();
             int endPos = 0;
-            Array.Copy(resMessageType, 0, res, endPos, resMessageType.Length);
-            endPos += resMessageType.Length;
-            Array.Copy(resLength, 0, res, endPos, resLength.Length);
-            endPos += resLength.Length;
-            Array.Copy(this.stunHeader.magicCookie, 0, res, endPos, this.stunHeader.magicCookie.Length);
-            endPos += this.stunHeader.magicCookie.Length;
-            Array.Copy(this.stunHeader.transactionId, 0, res, endPos, this.stunHeader.transactionId.Length);
-            endPos += this.stunHeader.transactionId.Length;
+            Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
+            endPos += resStunHeaderByte.Length;
             Array.Copy(stunAttr, 0, res, endPos, stunAttr.Length);
             endPos += stunAttr.Length;
             Array.Copy(resDataLength, 0, res, endPos, resDataLength.Length);
@@ -125,21 +157,20 @@ namespace doturn
                 addressBytesXor[i] = (byte)(this.address[i] ^ stunHeader.magicCookie[i]);
             }
 
-            var resMessageType = Constants.StunMessage.BINDING_SUCCESS;
-            var resLength = Utils.stringToByteArray("000c");
-            var stunAttr = Constants.StunAttr.XOR_MAPPED_ADDRESS;
-            var resDataLength = Utils.stringToByteArray("0008");
-            var resDataAddressType = Utils.stringToByteArray("0001");
+            var stunAttr = StunAttr.XOR_MAPPED_ADDRESS.ToByte();
+            var resDataLength = BitConverter.GetBytes((Int16)8);
+            var resDataAddressType = BitConverter.GetBytes((Int16)1);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(resDataLength);
+                Array.Reverse(resDataAddressType);
+            }
             var res = new byte[32];
+            var resStunHeader = new StunHeader(StunMessage.BINDING_SUCCESS, 12, this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeaderByte = resStunHeader.ToByte();
             int endPos = 0;
-            Array.Copy(resMessageType, 0, res, endPos, resMessageType.Length);
-            endPos += resMessageType.Length;
-            Array.Copy(resLength, 0, res, endPos, resLength.Length);
-            endPos += resLength.Length;
-            Array.Copy(this.stunHeader.magicCookie, 0, res, endPos, this.stunHeader.magicCookie.Length);
-            endPos += this.stunHeader.magicCookie.Length;
-            Array.Copy(this.stunHeader.transactionId, 0, res, endPos, this.stunHeader.transactionId.Length);
-            endPos += this.stunHeader.transactionId.Length;
+            Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
+            endPos += resStunHeaderByte.Length;
             Array.Copy(stunAttr, 0, res, endPos, stunAttr.Length);
             endPos += stunAttr.Length;
             Array.Copy(resDataLength, 0, res, endPos, resDataLength.Length);
