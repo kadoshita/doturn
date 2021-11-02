@@ -45,6 +45,21 @@ namespace doturn
             return arr;
         }
     }
+
+    public enum Transport
+    {
+        UDP = 0x11,
+        TCP = 0x06
+    }
+    public static class TransportExt
+    {
+        public static byte[] ToByte(this Transport transport)
+        {
+            var arr = BitConverter.GetBytes((char)transport);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
             return arr;
         }
     }
