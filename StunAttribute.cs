@@ -72,4 +72,44 @@ namespace doturn
             return res;
         }
     }
+    class StunAttributeNonce : IStunAttribute
+    {
+        public readonly StunAttrType attrType = StunAttrType.NONCE;
+        public readonly string nonce;
+        private static Random random = new Random();
+
+        public StunAttributeNonce()
+        {
+            this.nonce = generateNonce(16);
+        }
+        public StunAttributeNonce(string nonce)
+        {
+            this.nonce = nonce;
+        }
+        public byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var lengthByte = BitConverter.GetBytes((Int16)16);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+            var nonceByte = System.Text.Encoding.ASCII.GetBytes(this.nonce);
+
+            var res = new byte[20];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(nonceByte, 0, res, endPos, nonceByte.Length);
+            return res;
+        }
+        private string generateNonce(int length)
+        {
+            const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+    }
 }
