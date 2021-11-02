@@ -16,7 +16,10 @@ namespace doturn
         public static byte[] ToByte(this StunMessage stunMessage)
         {
             var arr = BitConverter.GetBytes((Int16)stunMessage);
-            Array.Reverse(arr);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
             return arr;
         }
     }
