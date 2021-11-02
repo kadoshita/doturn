@@ -21,17 +21,30 @@ namespace doturn
         }
     }
 
-    public enum StunAttr
+    public enum StunAttrType
     {
         MAPPED_ADDRESS = 0x0001,
-        XOR_MAPPED_ADDRESS = 0x0020
+        ERROR_CODE = 0x0009,
+        REALM = 0x0014,
+        NONCE = 0x0015,
+        REQUESTED_TRANSPORT = 0x0019,
+        XOR_MAPPED_ADDRESS = 0x0020,
+        SOFTWARE = 0x8022,
+        ALTERNATE_SERVER = 0x8023,
+        FINGERPRINT = 0x8028
     }
     public static class StunAttrExt
     {
-        public static byte[] ToByte(this StunAttr stunAttr)
+        public static byte[] ToByte(this StunAttrType stunAttr)
         {
             var arr = BitConverter.GetBytes((Int16)stunAttr);
-            Array.Reverse(arr);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
+            return arr;
+        }
+    }
             return arr;
         }
     }
