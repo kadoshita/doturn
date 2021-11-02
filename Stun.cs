@@ -107,7 +107,7 @@ namespace doturn
         //https://github.com/coturn/coturn/blob/master/src/client/ns_turn_msg.c#L630
         public byte[] ToByte()
         {
-            var stunAttr = StunAttr.MAPPED_ADDRESS.ToByte();
+            var stunAttr = StunAttrType.MAPPED_ADDRESS.ToByte();
             var resDataLength = BitConverter.GetBytes((Int16)8);
             var resDataAddressType = BitConverter.GetBytes((Int16)1);
             if (BitConverter.IsLittleEndian)
@@ -157,7 +157,7 @@ namespace doturn
                 addressBytesXor[i] = (byte)(this.address[i] ^ stunHeader.magicCookie[i]);
             }
 
-            var stunAttr = StunAttr.XOR_MAPPED_ADDRESS.ToByte();
+            var stunAttr = StunAttrType.XOR_MAPPED_ADDRESS.ToByte();
             var resDataLength = BitConverter.GetBytes((Int16)8);
             var resDataAddressType = BitConverter.GetBytes((Int16)1);
             if (BitConverter.IsLittleEndian)
