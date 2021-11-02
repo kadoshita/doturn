@@ -66,14 +66,18 @@ namespace doturn
 
     public enum Stun
     {
-        MAGIC_COOKIE = 0x2112a442
+        MAGIC_COOKIE = 0x2112a442,
+        FINGERPRINT_XOR = 0x5354554e
     }
     public static class StunExt
     {
         public static byte[] ToByte(this Stun stun)
         {
             var arr = BitConverter.GetBytes((Int32)stun);
-            Array.Reverse(arr);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
             return arr;
         }
     }
