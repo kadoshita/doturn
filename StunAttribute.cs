@@ -154,4 +154,50 @@ namespace doturn
             return res;
         }
     }
+    class StunAttributeSoftware : IStunAttribute
+    {
+        public readonly StunAttrType attrType = StunAttrType.SOFTWARE;
+        public readonly string software;
+
+        public StunAttributeSoftware()
+        {
+            this.software = "None";
+        }
+        public StunAttributeSoftware(string software)
+        {
+            this.software = software;
+        }
+        public byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var realmByte = System.Text.Encoding.ASCII.GetBytes(this.software);
+            var length = realmByte.Length;
+            var paddingLength = 8 - ((2 + 2 + length) % 8);
+            if (paddingLength >= 8)
+            {
+                paddingLength = 0;
+            }
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length + paddingLength];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(realmByte, 0, res, endPos, realmByte.Length);
+            endPos += realmByte.Length;
+            byte[] padding = { 0 };
+            for (int i = 0; i < paddingLength; i++)
+            {
+                Array.Copy(padding, 0, res, endPos, padding.Length);
+                endPos += padding.Length;
+            }
+            return res;
+        }
+    }
 }
