@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using Force.Crc32;
+
 namespace doturn
 {
 
@@ -197,6 +199,46 @@ namespace doturn
                 Array.Copy(padding, 0, res, endPos, padding.Length);
                 endPos += padding.Length;
             }
+            return res;
+        }
+    }
+    class StunAttributeFingerprint : IStunAttribute
+    {
+        public readonly StunAttrType attrType = StunAttrType.FINGERPRINT;
+        public readonly byte[] crc32;
+
+        public StunAttributeFingerprint(byte[] data)
+        {
+            var crc32 = Crc32Algorithm.Compute(data, 0, data.Length);
+            var crc32Byte = BitConverter.GetBytes(crc32);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(crc32Byte);
+            }
+            var crc32XorByte = new byte[crc32Byte.Length];
+            var fingerprintXor = Stun.FINGERPRINT_XOR.ToByte();
+            for (int i = 0; i < crc32Byte.Length; i++)
+            {
+                crc32XorByte[i] = (byte)(crc32Byte[i] ^ fingerprintXor[i]);
+            }
+            this.crc32 = crc32XorByte;
+        }
+        public byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var lengthByte = BitConverter.GetBytes((Int16)4);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[8];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(this.crc32, 0, res, endPos, this.crc32.Length);
             return res;
         }
     }
