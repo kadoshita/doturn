@@ -112,4 +112,46 @@ namespace doturn
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
+    class StunAttributeRealm : IStunAttribute
+    {
+        public readonly StunAttrType attrType = StunAttrType.REALM;
+        public readonly string realm;
+
+        public StunAttributeRealm()
+        {
+            this.realm = "example.com";
+        }
+        public StunAttributeRealm(string realm)
+        {
+            this.realm = realm;
+        }
+        public byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var realmByte = System.Text.Encoding.ASCII.GetBytes(this.realm);
+            var length = realmByte.Length;
+            var paddingLength = 8 - ((2 + 2 + length) % 8);
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length + paddingLength];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(realmByte, 0, res, endPos, realmByte.Length);
+            endPos += realmByte.Length;
+            byte[] padding = { 0 };
+            for (int i = 0; i < paddingLength; i++)
+            {
+                Array.Copy(padding, 0, res, endPos, padding.Length);
+                endPos += padding.Length;
+            }
+            return res;
+        }
+    }
 }
