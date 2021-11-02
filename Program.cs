@@ -48,6 +48,19 @@ namespace doturn
 
                         listener.Send(res, res.Length, endpoint);
                     }
+                    else if (stunHeader.messageType == StunMessage.ALLOCATE)
+                    {
+                        var allocateRequest = new AllocateRequest(stunHeader, buffer[20..buffer.Length]);
+                        if (allocateRequest.isValid())
+                        {
+                        }
+                        else
+                        {
+                            var allocateResponse = new AllocateResponse(stunHeader, false);
+                            var res = allocateResponse.ToByte();
+                            listener.Send(res, res.Length, endpoint);
+                        }
+                    }
                 }
             }
             catch (SocketException e)
