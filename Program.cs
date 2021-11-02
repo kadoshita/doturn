@@ -21,15 +21,18 @@ namespace doturn
                     {
                         continue;
                     }
-                    var stunHeader = new StunHeader(buffer);
-                    if (stunHeader.transactionId.SequenceEqual(Constants.Stun.INVALID_TRANSACTION_ID))
+                    var stunHeader = StunHeader.FromRawHeader(buffer);
+                    if (BitConverter.ToInt32(stunHeader.transactionId) == 0)
                     {
                         continue;
                     }
-                    if (stunHeader.messageType.SequenceEqual(Constants.StunMessage.BINDING))// Binding request
+                    if (stunHeader.messageType == StunMessage.BINDING)// Binding request
                     {
                         var portBytes = BitConverter.GetBytes(endpoint.Port);
-                        Array.Reverse(portBytes);
+                        if (BitConverter.IsLittleEndian)
+                        {
+                            Array.Reverse(portBytes);
+                        }
                         var addressBytes = endpoint.Address.GetAddressBytes();
                         byte[] res;
                         if (BitConverter.ToInt32(stunHeader.magicCookie) == 0)
@@ -44,6 +47,19 @@ namespace doturn
                         }
 
                         listener.Send(res, res.Length, endpoint);
+                    }
+                    else if (stunHeader.messageType == StunMessage.ALLOCATE)
+                    {
+                        var allocateRequest = new AllocateRequest(stunHeader, buffer[20..buffer.Length]);
+                        if (allocateRequest.isValid())
+                        {
+                        }
+                        else
+                        {
+                            var allocateResponse = new AllocateResponse(stunHeader, false);
+                            var res = allocateResponse.ToByte();
+                            listener.Send(res, res.Length, endpoint);
+                        }
                     }
                 }
             }

@@ -3,23 +3,85 @@ using System;
 
 namespace doturn
 {
-    static class Constants
+    public enum StunMessage
     {
-        public static class Stun
+        BINDING = 0x0001,
+        BINDING_SUCCESS = 0x0101,
+        ALLOCATE = 0x0003,
+        ALLOCATE_SUCCESS = 0x0103,
+        ALLOCATE_ERROR = 0x0113,
+    }
+    public static class StunMessageExt
+    {
+        public static byte[] ToByte(this StunMessage stunMessage)
         {
-            public static readonly byte[] MAGIC_COOKIE = { 33, 18, 164, 66 };
-            public static readonly byte[] INVALID_TRANSACTION_ID = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            var arr = BitConverter.GetBytes((Int16)stunMessage);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
+            return arr;
         }
-        public static class StunMessage
+    }
+
+    public enum StunAttrType
+    {
+        MAPPED_ADDRESS = 0x0001,
+        ERROR_CODE = 0x0009,
+        REALM = 0x0014,
+        NONCE = 0x0015,
+        REQUESTED_TRANSPORT = 0x0019,
+        XOR_MAPPED_ADDRESS = 0x0020,
+        SOFTWARE = 0x8022,
+        ALTERNATE_SERVER = 0x8023,
+        FINGERPRINT = 0x8028
+    }
+    public static class StunAttrExt
+    {
+        public static byte[] ToByte(this StunAttrType stunAttr)
         {
-            public static readonly byte[] BINDING = { 0, 1 };
-            public static readonly byte[] BINDING_SUCCESS = { 1, 1 };
-            public static readonly byte[] ALLOCATE = { 0, 3 };
+            var arr = BitConverter.GetBytes((Int16)stunAttr);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
+            return arr;
         }
-        public static class StunAttr
+    }
+
+    public enum Transport
+    {
+        UDP = 0x11,
+        TCP = 0x06
+    }
+    public static class TransportExt
+    {
+        public static byte[] ToByte(this Transport transport)
         {
-            public static readonly byte[] MAPPED_ADDRESS = { 0, 1 };
-            public static readonly byte[] XOR_MAPPED_ADDRESS = { 0, 32 };
+            var arr = BitConverter.GetBytes((char)transport);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
+            return arr;
+        }
+    }
+
+    public enum Stun
+    {
+        MAGIC_COOKIE = 0x2112a442,
+        FINGERPRINT_XOR = 0x5354554e
+    }
+    public static class StunExt
+    {
+        public static byte[] ToByte(this Stun stun)
+        {
+            var arr = BitConverter.GetBytes((Int32)stun);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(arr);
+            }
+            return arr;
         }
     }
 }
