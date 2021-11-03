@@ -27,6 +27,7 @@ namespace doturn
     public enum StunAttrType
     {
         MAPPED_ADDRESS = 0x0001,
+        USERNAME = 0x0006,
         ERROR_CODE = 0x0009,
         REALM = 0x0014,
         NONCE = 0x0015,
