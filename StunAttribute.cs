@@ -369,5 +369,41 @@ namespace doturn
             }
         }
     }
+    class StunAttributemessageIntegrity : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.MESSAGE_INTEGRITY;
+        public readonly string messageIntegrity;
+
+        public StunAttributemessageIntegrity(string messageIntegrity)
+        {
+            this.messageIntegrity = messageIntegrity;
+        }
+        public override byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var usernameByte = System.Text.Encoding.ASCII.GetBytes(this.messageIntegrity);
+            var length = usernameByte.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(usernameByte, 0, res, endPos, usernameByte.Length);
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
 }
