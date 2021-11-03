@@ -8,22 +8,28 @@ namespace doturn
     interface IStunAttribute
     {
         byte[] ToByte();
+        StunAttrType AttrType { get; }
     }
-    class StunAttribute : IStunAttribute
+    abstract class StunAttributeBase : IStunAttribute
     {
-        public readonly StunAttrType attr;
+        public abstract StunAttrType AttrType { get; }
+        public abstract byte[] ToByte();
+    }
+    class StunAttribute : StunAttributeBase
+    {
+        public readonly StunAttrType attrType;
         private byte[] data;
 
         public StunAttribute(StunAttrType attr, byte[] data)
         {
-            this.attr = attr;
+            this.attrType = attr;
             this.data = data;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             Int16 length = (Int16)this.data.Length;
             var res = new byte[2 + 2 + length];
-            var attrByte = this.attr.ToByte();
+            var attrByte = this.attrType.ToByte();
             var lengthByte = BitConverter.GetBytes(length);
             int endPos = 0;
             Array.Copy(attrByte, 0, res, endPos, attrByte.Length);
@@ -32,6 +38,13 @@ namespace doturn
             endPos += lengthByte.Length;
             Array.Copy(data, 0, res, endPos, data.Length);
             return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
         }
     }
     class StunAttributeErrorCode : IStunAttribute
@@ -47,7 +60,7 @@ namespace doturn
             this.errorCode = errorCode;
             this.errorReasonPhrase = errorReasonPhrase;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             byte[] errorByte = { this.errorClass, this.errorCode };
             var errorReasonPhraseByte = System.Text.Encoding.ASCII.GetBytes(this.errorReasonPhrase);
@@ -73,8 +86,15 @@ namespace doturn
             Array.Copy(errorReasonPhraseByte, 0, res, endPos, errorReasonPhraseByte.Length);
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeNonce : IStunAttribute
+    class StunAttributeNonce : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.NONCE;
         public readonly string nonce;
@@ -88,7 +108,7 @@ namespace doturn
         {
             this.nonce = nonce;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var lengthByte = BitConverter.GetBytes((Int16)16);
@@ -113,8 +133,15 @@ namespace doturn
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeRealm : IStunAttribute
+    class StunAttributeRealm : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.REALM;
         public readonly string realm;
@@ -127,7 +154,7 @@ namespace doturn
         {
             this.realm = realm;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var realmByte = System.Text.Encoding.ASCII.GetBytes(this.realm);
@@ -155,8 +182,15 @@ namespace doturn
             }
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeSoftware : IStunAttribute
+    class StunAttributeSoftware : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.SOFTWARE;
         public readonly string software;
@@ -169,7 +203,7 @@ namespace doturn
         {
             this.software = software;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var realmByte = System.Text.Encoding.ASCII.GetBytes(this.software);
@@ -201,8 +235,15 @@ namespace doturn
             }
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeFingerprint : IStunAttribute
+    class StunAttributeFingerprint : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.FINGERPRINT;
         public readonly byte[] crc32;
@@ -223,7 +264,7 @@ namespace doturn
             }
             this.crc32 = crc32XorByte;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var lengthByte = BitConverter.GetBytes((Int16)4);
@@ -241,5 +282,13 @@ namespace doturn
             Array.Copy(this.crc32, 0, res, endPos, this.crc32.Length);
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
     }
 }
