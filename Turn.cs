@@ -7,6 +7,8 @@ namespace doturn
     {
         public readonly StunHeader stunHeader;
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
+        private readonly string username;
+        private readonly string realm;
 
         public AllocateRequest(StunHeader stunHeader, byte[] body)
         {
@@ -40,9 +42,10 @@ namespace doturn
                 {
                     var usernameByte = body[endPos..(attrLength + endPos)];
                     endPos += usernameByte.Length;
-                    var username = BitConverter.ToString(usernameByte);
+                    var username = System.Text.Encoding.ASCII.GetString(usernameByte);
                     var stunAttributeUsername = new StunAttributeUsername(username);
                     this.attributes.Add(stunAttributeUsername);
+                    this.username = username;
                 }
                 else if (attrType == StunAttrType.REALM)
                 {
@@ -50,15 +53,16 @@ namespace doturn
                     endPos += realmByte.Length;
                     var paddingLength = 8 - ((2 + 2 + attrLength) % 8);
                     endPos += paddingLength;
-                    var realm = BitConverter.ToString(realmByte);
+                    string realm = System.Text.Encoding.ASCII.GetString(realmByte);
                     var stunAttributeRealm = new StunAttributeRealm(realm);
                     this.attributes.Add(stunAttributeRealm);
+                    this.realm = realm;
                 }
                 else if (attrType == StunAttrType.NONCE)
                 {
                     var nonceByte = body[endPos..(attrLength + endPos)];
                     endPos += nonceByte.Length;
-                    var nonce = BitConverter.ToString(nonceByte);
+                    var nonce = System.Text.Encoding.ASCII.GetString(nonceByte);
                     var stunAttributeNonce = new StunAttributeNonce(nonce);
                     this.attributes.Add(stunAttributeNonce);
                 }
