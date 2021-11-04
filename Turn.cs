@@ -1,36 +1,122 @@
 using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace doturn
 {
     class AllocateRequest
     {
         public readonly StunHeader stunHeader;
-        public readonly StunAttrType attrType;
-        public readonly Int16 attrLength;
-        public readonly Transport transport;
-        public readonly byte[] reserved;
+        public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
+        private readonly string username;
+        private readonly string realm;
+        private readonly StunAttributemessageIntegrity messageIntegrity;
 
         public AllocateRequest(StunHeader stunHeader, byte[] body)
         {
             this.stunHeader = stunHeader;
-            var attrTypeByte = body[0..2];
-            var attrLengthByte = body[2..4];
-            if (BitConverter.IsLittleEndian)
+            var endPos = 0;
+            for (; body.Length > endPos;)
             {
-                Array.Reverse(attrTypeByte);
-                Array.Reverse(attrLengthByte);
-            }
-            var transportByte = body[4..6];
-            this.reserved = body[6..body.Length];
+                var attrTypeByte = body[(0 + endPos)..(2 + endPos)];
+                endPos += attrTypeByte.Length;
+                var attrLengthByte = body[endPos..(2 + endPos)];
+                endPos += attrLengthByte.Length;
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(attrTypeByte);
+                    Array.Reverse(attrLengthByte);
+                }
 
-            this.attrType = (StunAttrType)Enum.ToObject(typeof(StunAttrType), BitConverter.ToInt16(attrTypeByte));
-            this.attrLength = BitConverter.ToInt16(attrLengthByte);
-            this.transport = (Transport)Enum.ToObject(typeof(Transport), BitConverter.ToInt16(transportByte));
+                var attrType = (StunAttrType)Enum.ToObject(typeof(StunAttrType), BitConverter.ToInt16(attrTypeByte));
+                var attrLength = BitConverter.ToInt16(attrLengthByte);
+                if (attrType == StunAttrType.REQUESTED_TRANSPORT)
+                {
+                    var transportByte = body[endPos..(1 + endPos)];
+                    endPos += transportByte.Length;
+                    var reserved = body[endPos..((attrLength - transportByte.Length) + endPos)];
+                    endPos += reserved.Length;
+                    var transport = (Transport)Enum.ToObject(typeof(Transport), (byte)transportByte[0]);
+                    var stunAttributeRequestedTransport = new StunAttributeRequestedTransport(transport, reserved);
+                    this.attributes.Add(stunAttributeRequestedTransport);
+                }
+                else if (attrType == StunAttrType.USERNAME)
+                {
+                    var usernameByte = body[endPos..(attrLength + endPos)];
+                    endPos += usernameByte.Length;
+                    var username = System.Text.Encoding.ASCII.GetString(usernameByte);
+                    var stunAttributeUsername = new StunAttributeUsername(username);
+                    this.attributes.Add(stunAttributeUsername);
+                    this.username = username;
+                }
+                else if (attrType == StunAttrType.REALM)
+                {
+                    var realmByte = body[endPos..(attrLength + endPos)];
+                    endPos += realmByte.Length;
+                    var paddingLength = 8 - ((2 + 2 + attrLength) % 8);
+                    endPos += paddingLength;
+                    string realm = System.Text.Encoding.ASCII.GetString(realmByte);
+                    var stunAttributeRealm = new StunAttributeRealm(realm);
+                    this.attributes.Add(stunAttributeRealm);
+                    this.realm = realm;
+                }
+                else if (attrType == StunAttrType.NONCE)
+                {
+                    var nonceByte = body[endPos..(attrLength + endPos)];
+                    endPos += nonceByte.Length;
+                    var nonce = System.Text.Encoding.ASCII.GetString(nonceByte);
+                    var stunAttributeNonce = new StunAttributeNonce(nonce);
+                    this.attributes.Add(stunAttributeNonce);
+                }
+                else if (attrType == StunAttrType.MESSAGE_INTEGRITY)
+                {
+                    var messageIntegrityByte = body[endPos..(attrLength + endPos)];
+                    endPos += messageIntegrityByte.Length;
+                    var stunAttributemessageIntegrity = new StunAttributemessageIntegrity(messageIntegrityByte);
+                    this.attributes.Add(stunAttributemessageIntegrity);
+                    this.messageIntegrity = stunAttributemessageIntegrity;
+                }
+            }
         }
 
         public bool isValid()
         {
-            return false;
+            if (this.messageIntegrity == null)
+            {
+                return false;
+            }
+            var messageIntegrityByte = this.messageIntegrity.ToByte();
+            var messageByte = new byte[this.stunHeader.messageLength + 20 - messageIntegrityByte.Length];
+            var stunHeaderByte = this.stunHeader.ToByte();
+            var endPos = 0;
+            Array.Copy(stunHeaderByte, 0, messageByte, endPos, stunHeaderByte.Length);
+            endPos += stunHeaderByte.Length;
+            foreach (var attr in this.attributes)
+            {
+                if (attr.AttrType == StunAttrType.MESSAGE_INTEGRITY)
+                {
+                    break;
+                }
+                var attrByte = attr.ToByte();
+                Array.Copy(attrByte, 0, messageByte, endPos, attrByte.Length);
+                endPos += attrByte.Length;
+            }
+
+            var username = "username";
+            var password = "password";
+            var realm = "example.com";
+            var md5 = MD5.Create();
+            var keyString = $"{username}:{realm}:{password}";
+            var keyStringByte = System.Text.Encoding.ASCII.GetBytes(keyString);
+            var md5HashByte = md5.ComputeHash(keyStringByte);
+            var hmacSHA1 = new HMACSHA1(md5HashByte);
+            md5.Clear();
+            var hmacSHA1Byte = hmacSHA1.ComputeHash(messageByte);
+            var hmacSHA1String = BitConverter.ToString(hmacSHA1Byte);
+            hmacSHA1.Clear();
+            var messageIntegrityString = BitConverter.ToString(this.messageIntegrity.messageIntegrity);
+
+            return hmacSHA1String == messageIntegrityString;
         }
     }
 

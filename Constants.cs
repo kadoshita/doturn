@@ -27,6 +27,8 @@ namespace doturn
     public enum StunAttrType
     {
         MAPPED_ADDRESS = 0x0001,
+        USERNAME = 0x0006,
+        MESSAGE_INTEGRITY = 0x0008,
         ERROR_CODE = 0x0009,
         REALM = 0x0014,
         NONCE = 0x0015,
@@ -58,12 +60,8 @@ namespace doturn
     {
         public static byte[] ToByte(this Transport transport)
         {
-            var arr = BitConverter.GetBytes((char)transport);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(arr);
-            }
-            return arr;
+            byte[] res = { BitConverter.GetBytes((byte)transport)[0] };
+            return res;
         }
     }
 

@@ -8,22 +8,28 @@ namespace doturn
     interface IStunAttribute
     {
         byte[] ToByte();
+        StunAttrType AttrType { get; }
     }
-    class StunAttribute : IStunAttribute
+    abstract class StunAttributeBase : IStunAttribute
     {
-        public readonly StunAttrType attr;
+        public abstract StunAttrType AttrType { get; }
+        public abstract byte[] ToByte();
+    }
+    class StunAttribute : StunAttributeBase
+    {
+        public readonly StunAttrType attrType;
         private byte[] data;
 
         public StunAttribute(StunAttrType attr, byte[] data)
         {
-            this.attr = attr;
+            this.attrType = attr;
             this.data = data;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             Int16 length = (Int16)this.data.Length;
             var res = new byte[2 + 2 + length];
-            var attrByte = this.attr.ToByte();
+            var attrByte = this.attrType.ToByte();
             var lengthByte = BitConverter.GetBytes(length);
             int endPos = 0;
             Array.Copy(attrByte, 0, res, endPos, attrByte.Length);
@@ -33,8 +39,94 @@ namespace doturn
             Array.Copy(data, 0, res, endPos, data.Length);
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeErrorCode : IStunAttribute
+    class StunAttributeRequestedTransport : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.REQUESTED_TRANSPORT;
+        public readonly Transport transport;
+        public readonly byte[] reserved;
+
+        public StunAttributeRequestedTransport(Transport transport, byte[] reserved)
+        {
+            this.transport = transport;
+            this.reserved = reserved;
+        }
+        public override byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var transportByte = this.transport.ToByte();
+            var length = transportByte.Length + this.reserved.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(transportByte, 0, res, endPos, transportByte.Length);
+            endPos += transportByte.Length;
+            Array.Copy(this.reserved, 0, res, endPos, this.reserved.Length);
+            endPos += this.reserved.Length;
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
+    class StunAttributeUsername : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.USERNAME;
+        public readonly string username;
+
+        public StunAttributeUsername(string username)
+        {
+            this.username = username;
+        }
+        public override byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var usernameByte = System.Text.Encoding.ASCII.GetBytes(this.username);
+            var length = usernameByte.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(usernameByte, 0, res, endPos, usernameByte.Length);
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
+    class StunAttributeErrorCode : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.ERROR_CODE;
         public readonly byte errorClass;
@@ -47,7 +139,7 @@ namespace doturn
             this.errorCode = errorCode;
             this.errorReasonPhrase = errorReasonPhrase;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             byte[] errorByte = { this.errorClass, this.errorCode };
             var errorReasonPhraseByte = System.Text.Encoding.ASCII.GetBytes(this.errorReasonPhrase);
@@ -73,8 +165,15 @@ namespace doturn
             Array.Copy(errorReasonPhraseByte, 0, res, endPos, errorReasonPhraseByte.Length);
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeNonce : IStunAttribute
+    class StunAttributeNonce : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.NONCE;
         public readonly string nonce;
@@ -88,7 +187,7 @@ namespace doturn
         {
             this.nonce = nonce;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var lengthByte = BitConverter.GetBytes((Int16)16);
@@ -113,8 +212,15 @@ namespace doturn
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeRealm : IStunAttribute
+    class StunAttributeRealm : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.REALM;
         public readonly string realm;
@@ -127,7 +233,7 @@ namespace doturn
         {
             this.realm = realm;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var realmByte = System.Text.Encoding.ASCII.GetBytes(this.realm);
@@ -155,8 +261,15 @@ namespace doturn
             }
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeSoftware : IStunAttribute
+    class StunAttributeSoftware : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.SOFTWARE;
         public readonly string software;
@@ -169,7 +282,7 @@ namespace doturn
         {
             this.software = software;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var realmByte = System.Text.Encoding.ASCII.GetBytes(this.software);
@@ -201,8 +314,15 @@ namespace doturn
             }
             return res;
         }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
     }
-    class StunAttributeFingerprint : IStunAttribute
+    class StunAttributeFingerprint : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.FINGERPRINT;
         public readonly byte[] crc32;
@@ -223,7 +343,7 @@ namespace doturn
             }
             this.crc32 = crc32XorByte;
         }
-        public byte[] ToByte()
+        public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
             var lengthByte = BitConverter.GetBytes((Int16)4);
@@ -240,6 +360,49 @@ namespace doturn
             endPos += lengthByte.Length;
             Array.Copy(this.crc32, 0, res, endPos, this.crc32.Length);
             return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
+    class StunAttributemessageIntegrity : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.MESSAGE_INTEGRITY;
+        public readonly byte[] messageIntegrity;
+
+        public StunAttributemessageIntegrity(byte[] messageIntegrity)
+        {
+            this.messageIntegrity = messageIntegrity;
+        }
+        public override byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var length = this.messageIntegrity.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(this.messageIntegrity, 0, res, endPos, this.messageIntegrity.Length);
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
         }
     }
 }
