@@ -28,11 +28,11 @@ namespace doturn
                 var attrLength = BitConverter.ToInt16(attrLengthByte);
                 if (attrType == StunAttrType.REQUESTED_TRANSPORT)
                 {
-                    var transportByte = body[endPos..(2 + endPos)];
+                    var transportByte = body[endPos..(1 + endPos)];
                     endPos += transportByte.Length;
                     var reserved = body[endPos..((attrLength - transportByte.Length) + endPos)];
                     endPos += reserved.Length;
-                    var transport = (Transport)Enum.ToObject(typeof(Transport), BitConverter.ToInt16(transportByte));
+                    var transport = (Transport)Enum.ToObject(typeof(Transport), (byte)transportByte[0]);
                     var stunAttributeRequestedTransport = new StunAttributeRequestedTransport(transport, reserved);
                     this.attributes.Add(stunAttributeRequestedTransport);
                 }
