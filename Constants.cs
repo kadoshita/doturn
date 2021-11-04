@@ -60,12 +60,8 @@ namespace doturn
     {
         public static byte[] ToByte(this Transport transport)
         {
-            var arr = BitConverter.GetBytes((char)transport);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(arr);
-            }
-            return arr;
+            byte[] res = { BitConverter.GetBytes((byte)transport)[0] };
+            return res;
         }
     }
 
