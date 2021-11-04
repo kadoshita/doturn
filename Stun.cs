@@ -68,6 +68,7 @@ namespace doturn
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(messageTypeByte);
+                Array.Reverse(messageLengthByte);
             }
             var messageType = (StunMessage)Enum.ToObject(typeof(StunMessage), BitConverter.ToInt16(messageTypeByte));
             var messageLength = BitConverter.ToInt16(messageLengthByte);
