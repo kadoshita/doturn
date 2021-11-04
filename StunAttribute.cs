@@ -372,17 +372,16 @@ namespace doturn
     class StunAttributemessageIntegrity : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.MESSAGE_INTEGRITY;
-        public readonly string messageIntegrity;
+        public readonly byte[] messageIntegrity;
 
-        public StunAttributemessageIntegrity(string messageIntegrity)
+        public StunAttributemessageIntegrity(byte[] messageIntegrity)
         {
             this.messageIntegrity = messageIntegrity;
         }
         public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
-            var usernameByte = System.Text.Encoding.ASCII.GetBytes(this.messageIntegrity);
-            var length = usernameByte.Length;
+            var length = this.messageIntegrity.Length;
             var lengthByte = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)
             {
@@ -395,7 +394,7 @@ namespace doturn
             endPos += attrTypeByte.Length;
             Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
             endPos += lengthByte.Length;
-            Array.Copy(usernameByte, 0, res, endPos, usernameByte.Length);
+            Array.Copy(this.messageIntegrity, 0, res, endPos, this.messageIntegrity.Length);
             return res;
         }
         public override StunAttrType AttrType
