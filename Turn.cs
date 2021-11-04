@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace doturn
 {
@@ -9,6 +10,7 @@ namespace doturn
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
         private readonly string username;
         private readonly string realm;
+        private readonly StunAttributemessageIntegrity messageIntegrity;
 
         public AllocateRequest(StunHeader stunHeader, byte[] body)
         {
@@ -70,16 +72,51 @@ namespace doturn
                 {
                     var messageIntegrityByte = body[endPos..(attrLength + endPos)];
                     endPos += messageIntegrityByte.Length;
-                    var messageIntegrity = BitConverter.ToString(messageIntegrityByte);
-                    var stunAttributemessageIntegrity = new StunAttributemessageIntegrity(messageIntegrity);
+                    var stunAttributemessageIntegrity = new StunAttributemessageIntegrity(messageIntegrityByte);
                     this.attributes.Add(stunAttributemessageIntegrity);
+                    this.messageIntegrity = stunAttributemessageIntegrity;
                 }
             }
         }
 
         public bool isValid()
         {
-            return false;
+            if (this.messageIntegrity == null)
+            {
+                return false;
+            }
+            var messageIntegrityByte = this.messageIntegrity.ToByte();
+            var messageByte = new byte[this.stunHeader.messageLength + 20 - messageIntegrityByte.Length];
+            var stunHeaderByte = this.stunHeader.ToByte();
+            var endPos = 0;
+            Array.Copy(stunHeaderByte, 0, messageByte, endPos, stunHeaderByte.Length);
+            endPos += stunHeaderByte.Length;
+            foreach (var attr in this.attributes)
+            {
+                if (attr.AttrType == StunAttrType.MESSAGE_INTEGRITY)
+                {
+                    break;
+                }
+                var attrByte = attr.ToByte();
+                Array.Copy(attrByte, 0, messageByte, endPos, attrByte.Length);
+                endPos += attrByte.Length;
+            }
+
+            var username = "username";
+            var password = "password";
+            var realm = "example.com";
+            var md5 = MD5.Create();
+            var keyString = $"{username}:{realm}:{password}";
+            var keyStringByte = System.Text.Encoding.ASCII.GetBytes(keyString);
+            var md5HashByte = md5.ComputeHash(keyStringByte);
+            var hmacSHA1 = new HMACSHA1(md5HashByte);
+            md5.Clear();
+            var hmacSHA1Byte = hmacSHA1.ComputeHash(messageByte);
+            var hmacSHA1String = BitConverter.ToString(hmacSHA1Byte);
+            hmacSHA1.Clear();
+            var messageIntegrityString = BitConverter.ToString(this.messageIntegrity.messageIntegrity);
+
+            return hmacSHA1String == messageIntegrityString;
         }
     }
 
