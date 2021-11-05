@@ -405,4 +405,53 @@ namespace doturn
             }
         }
     }
+    class StunAttributeMappedAddress : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.MAPPED_ADDRESS;
+        public readonly byte[] address;
+        public readonly byte[] port;
+        public readonly byte[] magicCookie;
+
+        public StunAttributeMappedAddress(byte[] address, byte[] port, byte[] magicCookie)
+        {
+            this.address = address;
+            this.port = port;
+            this.magicCookie = magicCookie;
+        }
+        //https://github.com/coturn/coturn/blob/master/src/client/ns_turn_msg.c#L630
+        public override byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            byte[] reserved = { 0x00 };
+            byte[] addressFamilyByte = { 0x01 };
+            var length = reserved.Length + addressFamilyByte.Length + this.port.Length + this.address.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(reserved, 0, res, endPos, reserved.Length);
+            endPos += reserved.Length;
+            Array.Copy(addressFamilyByte, 0, res, endPos, addressFamilyByte.Length);
+            endPos += addressFamilyByte.Length;
+            Array.Copy(this.port, 0, res, endPos, this.port.Length);
+            endPos += this.port.Length;
+            Array.Copy(this.address, 0, res, endPos, this.address.Length);
+            endPos += this.address.Length;
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
 }
