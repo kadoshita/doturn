@@ -108,30 +108,21 @@ namespace doturn
         //https://github.com/coturn/coturn/blob/master/src/client/ns_turn_msg.c#L630
         public byte[] ToByte()
         {
-            var stunAttr = StunAttrType.MAPPED_ADDRESS.ToByte();
-            var resDataLength = BitConverter.GetBytes((Int16)8);
-            var resDataAddressType = BitConverter.GetBytes((Int16)1);
+            var stunAttributeMappedAddress = new StunAttributeMappedAddress(this.address, this.port, this.stunHeader.magicCookie);
+            var stunAttributeMappedAddressByte = stunAttributeMappedAddress.ToByte();
+            Int16 length = (Int16)stunAttributeMappedAddressByte.Length;
+            var lengthByte = BitConverter.GetBytes(length);
             if (BitConverter.IsLittleEndian)
             {
-                Array.Reverse(resDataLength);
-                Array.Reverse(resDataAddressType);
+                Array.Reverse(lengthByte);
             }
-            var res = new byte[32];
-            var resStunHeader = new StunHeader(StunMessage.BINDING_SUCCESS, 12, this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeader = new StunHeader(StunMessage.BINDING_SUCCESS, length, this.stunHeader.magicCookie, this.stunHeader.transactionId);
             var resStunHeaderByte = resStunHeader.ToByte();
+            var res = new byte[resStunHeaderByte.Length + length];
             int endPos = 0;
             Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
             endPos += resStunHeaderByte.Length;
-            Array.Copy(stunAttr, 0, res, endPos, stunAttr.Length);
-            endPos += stunAttr.Length;
-            Array.Copy(resDataLength, 0, res, endPos, resDataLength.Length);
-            endPos += resDataLength.Length;
-            Array.Copy(resDataAddressType, 0, res, endPos, resDataAddressType.Length);
-            endPos += resDataAddressType.Length;
-            Array.Copy(this.port, 0, res, endPos, this.port.Length);
-            endPos += this.port.Length;
-            Array.Copy(this.address, 0, res, endPos, this.address.Length);
-            endPos += this.address.Length;
+            Array.Copy(stunAttributeMappedAddressByte, 0, res, endPos, stunAttributeMappedAddressByte.Length);
             return res;
         }
     }
@@ -148,40 +139,21 @@ namespace doturn
         }
         public byte[] ToByte()
         {
-            var portBytesXor = new byte[2];
-            portBytesXor[0] = (byte)(this.port[2] ^ stunHeader.magicCookie[0]);
-            portBytesXor[1] = (byte)(this.port[3] ^ stunHeader.magicCookie[1]);
-
-            var addressBytesXor = new byte[this.address.Length];
-            for (int i = 0; i < this.address.Length; i++)
-            {
-                addressBytesXor[i] = (byte)(this.address[i] ^ stunHeader.magicCookie[i]);
-            }
-
-            var stunAttr = StunAttrType.XOR_MAPPED_ADDRESS.ToByte();
-            var resDataLength = BitConverter.GetBytes((Int16)8);
-            var resDataAddressType = BitConverter.GetBytes((Int16)1);
+            var stunAttributeXorMappedAddress = new StunAttributeXorMappedAddress(this.address, this.port, this.stunHeader.magicCookie);
+            var stunAttributeXorMappedAddressByte = stunAttributeXorMappedAddress.ToByte();
+            Int16 length = (Int16)stunAttributeXorMappedAddressByte.Length;
+            var lengthByte = BitConverter.GetBytes(length);
             if (BitConverter.IsLittleEndian)
             {
-                Array.Reverse(resDataLength);
-                Array.Reverse(resDataAddressType);
+                Array.Reverse(lengthByte);
             }
-            var res = new byte[32];
-            var resStunHeader = new StunHeader(StunMessage.BINDING_SUCCESS, 12, this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeader = new StunHeader(StunMessage.BINDING_SUCCESS, length, this.stunHeader.magicCookie, this.stunHeader.transactionId);
             var resStunHeaderByte = resStunHeader.ToByte();
+            var res = new byte[resStunHeaderByte.Length + length];
             int endPos = 0;
             Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
             endPos += resStunHeaderByte.Length;
-            Array.Copy(stunAttr, 0, res, endPos, stunAttr.Length);
-            endPos += stunAttr.Length;
-            Array.Copy(resDataLength, 0, res, endPos, resDataLength.Length);
-            endPos += resDataLength.Length;
-            Array.Copy(resDataAddressType, 0, res, endPos, resDataAddressType.Length);
-            endPos += resDataAddressType.Length;
-            Array.Copy(portBytesXor, 0, res, endPos, portBytesXor.Length);
-            endPos += portBytesXor.Length;
-            Array.Copy(addressBytesXor, 0, res, endPos, addressBytesXor.Length);
-            endPos += addressBytesXor.Length;
+            Array.Copy(stunAttributeXorMappedAddressByte, 0, res, endPos, stunAttributeXorMappedAddressByte.Length);
             return res;
         }
     }
