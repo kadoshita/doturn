@@ -285,8 +285,8 @@ namespace doturn
         public override byte[] ToByte()
         {
             var attrTypeByte = this.attrType.ToByte();
-            var realmByte = System.Text.Encoding.ASCII.GetBytes(this.software);
-            var length = realmByte.Length;
+            var softwareByte = System.Text.Encoding.ASCII.GetBytes(this.software);
+            var length = softwareByte.Length;
             var paddingLength = 8 - ((2 + 2 + length) % 8);
             if (paddingLength >= 8)
             {
@@ -304,8 +304,8 @@ namespace doturn
             endPos += attrTypeByte.Length;
             Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
             endPos += lengthByte.Length;
-            Array.Copy(realmByte, 0, res, endPos, realmByte.Length);
-            endPos += realmByte.Length;
+            Array.Copy(softwareByte, 0, res, endPos, softwareByte.Length);
+            endPos += softwareByte.Length;
             byte[] padding = { 0 };
             for (int i = 0; i < paddingLength; i++)
             {
@@ -369,12 +369,12 @@ namespace doturn
             }
         }
     }
-    class StunAttributemessageIntegrity : StunAttributeBase
+    class StunAttributeMessageIntegrity : StunAttributeBase
     {
         public readonly StunAttrType attrType = StunAttrType.MESSAGE_INTEGRITY;
         public readonly byte[] messageIntegrity;
 
-        public StunAttributemessageIntegrity(byte[] messageIntegrity)
+        public StunAttributeMessageIntegrity(byte[] messageIntegrity)
         {
             this.messageIntegrity = messageIntegrity;
         }

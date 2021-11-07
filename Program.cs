@@ -28,21 +28,21 @@ namespace doturn
                     }
                     if (stunHeader.messageType == StunMessage.BINDING)// Binding request
                     {
-                        var portBytes = BitConverter.GetBytes(endpoint.Port);
+                        var portByte = BitConverter.GetBytes(endpoint.Port);
                         if (BitConverter.IsLittleEndian)
                         {
-                            Array.Reverse(portBytes);
+                            Array.Reverse(portByte);
                         }
-                        var addressBytes = endpoint.Address.GetAddressBytes();
+                        var addressByte = endpoint.Address.GetAddressBytes();
                         byte[] res;
                         if (BitConverter.ToInt32(stunHeader.magicCookie) == 0)
                         {
-                            var mappedAddress = new MappedAddress(addressBytes, portBytes, stunHeader);
+                            var mappedAddress = new MappedAddress(addressByte, portByte, stunHeader);
                             res = mappedAddress.ToByte();
                         }
                         else
                         {
-                            var xorMappedAddress = new XorMappedAddress(addressBytes, portBytes, stunHeader);
+                            var xorMappedAddress = new XorMappedAddress(addressByte, portByte, stunHeader);
                             res = xorMappedAddress.ToByte();
                         }
 

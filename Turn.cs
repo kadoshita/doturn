@@ -10,7 +10,7 @@ namespace doturn
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
         private readonly string username;
         private readonly string realm;
-        private readonly StunAttributemessageIntegrity messageIntegrity;
+        private readonly StunAttributeMessageIntegrity messageIntegrity;
 
         public AllocateRequest(StunHeader stunHeader, byte[] body)
         {
@@ -72,7 +72,7 @@ namespace doturn
                 {
                     var messageIntegrityByte = body[endPos..(attrLength + endPos)];
                     endPos += messageIntegrityByte.Length;
-                    var stunAttributemessageIntegrity = new StunAttributemessageIntegrity(messageIntegrityByte);
+                    var stunAttributemessageIntegrity = new StunAttributeMessageIntegrity(messageIntegrityByte);
                     this.attributes.Add(stunAttributemessageIntegrity);
                     this.messageIntegrity = stunAttributemessageIntegrity;
                 }
