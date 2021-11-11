@@ -59,6 +59,15 @@ namespace doturn
                         var allocateRequest = new AllocateRequest(stunHeader, buffer[20..buffer.Length], username, password, realm);
                         if (allocateRequest.isValid())
                         {
+                            var portByte = BitConverter.GetBytes(endpoint.Port);
+                            if (BitConverter.IsLittleEndian)
+                            {
+                                Array.Reverse(portByte);
+                            }
+                            var addressByte = endpoint.Address.GetAddressBytes();
+                            var allocateSuccessResponse = new AllocateSuccessResponse(stunHeader, portByte, addressByte, externalIPAddress, relayPort, username, password, realm);
+                            var res = allocateSuccessResponse.ToByte();
+                            listener.Send(res, res.Length, endpoint);
                         }
                         else
                         {
