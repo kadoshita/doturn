@@ -1,13 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace doturn
 {
     class Program
     {
-        private static void Start()
+        private static void Start(IConfigurationRoot configuration)
         {
             var listener = new UdpClient(3478);
             var endpoint = new IPEndPoint(IPAddress.Any, 3478);
@@ -50,7 +51,12 @@ namespace doturn
                     }
                     else if (stunHeader.messageType == StunMessage.ALLOCATE)
                     {
-                        var allocateRequest = new AllocateRequest(stunHeader, buffer[20..buffer.Length]);
+                        var username = configuration["Username"];
+                        var password = configuration["Password"];
+                        var realm = configuration["Realm"];
+                        var externalIPAddress = configuration["ExternalIPAddress"];
+                        Int16 relayPort = 20000;
+                        var allocateRequest = new AllocateRequest(stunHeader, buffer[20..buffer.Length], username, password, realm);
                         if (allocateRequest.isValid())
                         {
                         }
@@ -74,7 +80,8 @@ namespace doturn
         }
         static void Main(string[] args)
         {
-            Start();
+            var configureation = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(path: "application.json").Build();
+            Start(configureation);
         }
     }
 }
