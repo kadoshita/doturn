@@ -8,13 +8,20 @@ namespace doturn
     {
         public readonly StunHeader stunHeader;
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
+        private readonly string inputUsername;
+        private readonly string inputRealm;
+
         private readonly string username;
+        private readonly string password;
         private readonly string realm;
         private readonly StunAttributeMessageIntegrity messageIntegrity;
 
-        public AllocateRequest(StunHeader stunHeader, byte[] body)
+        public AllocateRequest(StunHeader stunHeader, byte[] body, string username, string password, string realm)
         {
             this.stunHeader = stunHeader;
+            this.username = username;
+            this.password = password;
+            this.realm = realm;
             var endPos = 0;
             for (; body.Length > endPos;)
             {
@@ -44,10 +51,10 @@ namespace doturn
                 {
                     var usernameByte = body[endPos..(attrLength + endPos)];
                     endPos += usernameByte.Length;
-                    var username = System.Text.Encoding.ASCII.GetString(usernameByte);
-                    var stunAttributeUsername = new StunAttributeUsername(username);
+                    var usernameStr = System.Text.Encoding.ASCII.GetString(usernameByte);
+                    var stunAttributeUsername = new StunAttributeUsername(usernameStr);
                     this.attributes.Add(stunAttributeUsername);
-                    this.username = username;
+                    this.inputUsername = usernameStr;
                 }
                 else if (attrType == StunAttrType.REALM)
                 {
@@ -55,10 +62,10 @@ namespace doturn
                     endPos += realmByte.Length;
                     var paddingLength = 8 - ((2 + 2 + attrLength) % 8);
                     endPos += paddingLength;
-                    string realm = System.Text.Encoding.ASCII.GetString(realmByte);
-                    var stunAttributeRealm = new StunAttributeRealm(realm);
+                    string realmStr = System.Text.Encoding.ASCII.GetString(realmByte);
+                    var stunAttributeRealm = new StunAttributeRealm(realmStr);
                     this.attributes.Add(stunAttributeRealm);
-                    this.realm = realm;
+                    this.inputRealm = realmStr;
                 }
                 else if (attrType == StunAttrType.NONCE)
                 {
@@ -102,11 +109,8 @@ namespace doturn
                 endPos += attrByte.Length;
             }
 
-            var username = "username";
-            var password = "password";
-            var realm = "example.com";
             var md5 = MD5.Create();
-            var keyString = $"{username}:{realm}:{password}";
+            var keyString = $"{this.username}:{this.realm}:{this.password}";
             var keyStringByte = System.Text.Encoding.ASCII.GetBytes(keyString);
             var md5HashByte = md5.ComputeHash(keyStringByte);
             var hmacSHA1 = new HMACSHA1(md5HashByte);
@@ -120,14 +124,12 @@ namespace doturn
         }
     }
 
-    class AllocateResponse
+    class AllocateErrorResponse
     {
         public readonly StunHeader stunHeader;
-        private readonly bool isValid;
-        public AllocateResponse(StunHeader stunHeader, bool isValid)
+        public AllocateErrorResponse(StunHeader stunHeader)
         {
             this.stunHeader = stunHeader;
-            this.isValid = isValid;
         }
 
         public byte[] ToByte()

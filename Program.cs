@@ -62,8 +62,8 @@ namespace doturn
                         }
                         else
                         {
-                            var allocateResponse = new AllocateResponse(stunHeader, false);
-                            var res = allocateResponse.ToByte();
+                            var allocateErrorResponse = new AllocateErrorResponse(stunHeader);
+                            var res = allocateErrorResponse.ToByte();
                             listener.Send(res, res.Length, endpoint);
                         }
                     }

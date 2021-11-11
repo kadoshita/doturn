@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
 using Force.Crc32;
 
 namespace doturn
@@ -377,6 +379,18 @@ namespace doturn
         public StunAttributeMessageIntegrity(byte[] messageIntegrity)
         {
             this.messageIntegrity = messageIntegrity;
+        }
+        public StunAttributeMessageIntegrity(byte[] data, string username, string password, string realm)
+        {
+            var md5 = MD5.Create();
+            var keyString = $"{username}:{realm}:{password}";
+            var keyStringByte = System.Text.Encoding.ASCII.GetBytes(keyString);
+            var md5HashByte = md5.ComputeHash(keyStringByte);
+            var hmacSHA1 = new HMACSHA1(md5HashByte);
+            md5.Clear();
+            var hmacSHA1Byte = hmacSHA1.ComputeHash(data);
+            this.messageIntegrity = hmacSHA1Byte;
+            hmacSHA1.Clear();
         }
         public override byte[] ToByte()
         {
