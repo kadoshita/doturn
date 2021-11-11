@@ -591,4 +591,46 @@ namespace doturn
             }
         }
     }
+    class StunAttributeLifetime : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.LIFETIME;
+        public readonly Int32 lifetime;
+
+        public StunAttributeLifetime()
+        {
+            this.lifetime = 600;
+        }
+        public StunAttributeLifetime(Int32 lifetime)
+        {
+            this.lifetime = lifetime;
+        }
+        public override byte[] ToByte()
+        {
+            var attrTypeByte = this.attrType.ToByte();
+            var lifetimeByte = BitConverter.GetBytes(this.lifetime);
+            var length = lifetimeByte.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lifetimeByte);
+                Array.Reverse(lengthByte);
+            }
+
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(lifetimeByte, 0, res, endPos, lifetimeByte.Length);
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
 }
