@@ -527,4 +527,68 @@ namespace doturn
             }
         }
     }
+    class StunAttributeXorRelayedAddress : StunAttributeBase
+    {
+        public readonly StunAttrType attrType = StunAttrType.XOR_RELAYED_ADDRESS;
+        public readonly byte[] address;
+        public readonly byte[] port;
+        public readonly byte[] magicCookie;
+
+        public StunAttributeXorRelayedAddress(string externalIPAddress, Int16 relayPort, byte[] magicCookie)
+        {
+            var ipAddress = IPAddress.Parse(externalIPAddress);
+            this.address = ipAddress.GetAddressBytes();
+            var portByte = BitConverter.GetBytes(relayPort);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(portByte);
+            }
+            this.port = portByte;
+            this.magicCookie = magicCookie;
+        }
+        public override byte[] ToByte()
+        {
+            var portBytesXor = new byte[2];
+            portBytesXor[0] = (byte)(this.port[0] ^ this.magicCookie[0]);
+            portBytesXor[1] = (byte)(this.port[1] ^ this.magicCookie[1]);
+
+            var addressBytesXor = new byte[this.address.Length];
+            for (int i = 0; i < this.address.Length; i++)
+            {
+                addressBytesXor[i] = (byte)(this.address[i] ^ this.magicCookie[i]);
+            }
+
+            var attrTypeByte = this.attrType.ToByte();
+            byte[] reserved = { 0x00 };
+            byte[] addressFamilyByte = { 0x01 };
+            var length = reserved.Length + addressFamilyByte.Length + portBytesXor.Length + addressBytesXor.Length;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+            var res = new byte[2 + 2 + length];
+            int endPos = 0;
+            Array.Copy(attrTypeByte, 0, res, endPos, attrTypeByte.Length);
+            endPos += attrTypeByte.Length;
+            Array.Copy(lengthByte, 0, res, endPos, lengthByte.Length);
+            endPos += lengthByte.Length;
+            Array.Copy(reserved, 0, res, endPos, reserved.Length);
+            endPos += reserved.Length;
+            Array.Copy(addressFamilyByte, 0, res, endPos, addressFamilyByte.Length);
+            endPos += addressFamilyByte.Length;
+            Array.Copy(portBytesXor, 0, res, endPos, portBytesXor.Length);
+            endPos += portBytesXor.Length;
+            Array.Copy(addressBytesXor, 0, res, endPos, addressBytesXor.Length);
+            endPos += addressBytesXor.Length;
+            return res;
+        }
+        public override StunAttrType AttrType
+        {
+            get
+            {
+                return this.attrType;
+            }
+        }
+    }
 }
