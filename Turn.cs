@@ -8,13 +8,20 @@ namespace doturn
     {
         public readonly StunHeader stunHeader;
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
-        private readonly string username;
-        private readonly string realm;
-        private readonly StunAttributemessageIntegrity messageIntegrity;
+        private readonly string inputUsername;
+        private readonly string inputRealm;
 
-        public AllocateRequest(StunHeader stunHeader, byte[] body)
+        private readonly string username;
+        private readonly string password;
+        private readonly string realm;
+        private readonly StunAttributeMessageIntegrity messageIntegrity;
+
+        public AllocateRequest(StunHeader stunHeader, byte[] body, string username, string password, string realm)
         {
             this.stunHeader = stunHeader;
+            this.username = username;
+            this.password = password;
+            this.realm = realm;
             var endPos = 0;
             for (; body.Length > endPos;)
             {
@@ -44,10 +51,10 @@ namespace doturn
                 {
                     var usernameByte = body[endPos..(attrLength + endPos)];
                     endPos += usernameByte.Length;
-                    var username = System.Text.Encoding.ASCII.GetString(usernameByte);
-                    var stunAttributeUsername = new StunAttributeUsername(username);
+                    var usernameStr = System.Text.Encoding.ASCII.GetString(usernameByte);
+                    var stunAttributeUsername = new StunAttributeUsername(usernameStr);
                     this.attributes.Add(stunAttributeUsername);
-                    this.username = username;
+                    this.inputUsername = usernameStr;
                 }
                 else if (attrType == StunAttrType.REALM)
                 {
@@ -55,10 +62,10 @@ namespace doturn
                     endPos += realmByte.Length;
                     var paddingLength = 8 - ((2 + 2 + attrLength) % 8);
                     endPos += paddingLength;
-                    string realm = System.Text.Encoding.ASCII.GetString(realmByte);
-                    var stunAttributeRealm = new StunAttributeRealm(realm);
+                    string realmStr = System.Text.Encoding.ASCII.GetString(realmByte);
+                    var stunAttributeRealm = new StunAttributeRealm(realmStr);
                     this.attributes.Add(stunAttributeRealm);
-                    this.realm = realm;
+                    this.inputRealm = realmStr;
                 }
                 else if (attrType == StunAttrType.NONCE)
                 {
@@ -72,7 +79,7 @@ namespace doturn
                 {
                     var messageIntegrityByte = body[endPos..(attrLength + endPos)];
                     endPos += messageIntegrityByte.Length;
-                    var stunAttributemessageIntegrity = new StunAttributemessageIntegrity(messageIntegrityByte);
+                    var stunAttributemessageIntegrity = new StunAttributeMessageIntegrity(messageIntegrityByte);
                     this.attributes.Add(stunAttributemessageIntegrity);
                     this.messageIntegrity = stunAttributemessageIntegrity;
                 }
@@ -102,11 +109,8 @@ namespace doturn
                 endPos += attrByte.Length;
             }
 
-            var username = "username";
-            var password = "password";
-            var realm = "example.com";
             var md5 = MD5.Create();
-            var keyString = $"{username}:{realm}:{password}";
+            var keyString = $"{this.username}:{this.realm}:{this.password}";
             var keyStringByte = System.Text.Encoding.ASCII.GetBytes(keyString);
             var md5HashByte = md5.ComputeHash(keyStringByte);
             var hmacSHA1 = new HMACSHA1(md5HashByte);
@@ -119,15 +123,85 @@ namespace doturn
             return hmacSHA1String == messageIntegrityString;
         }
     }
-
-    class AllocateResponse
+    class AllocateSuccessResponse
     {
         public readonly StunHeader stunHeader;
-        private readonly bool isValid;
-        public AllocateResponse(StunHeader stunHeader, bool isValid)
+        private readonly byte[] port;
+        private readonly byte[] address;
+        private readonly string externalIPAddress;
+        private readonly Int16 relayPort;
+        private readonly string username;
+        private readonly string password;
+        private readonly string realm;
+        public AllocateSuccessResponse(StunHeader stunHeader, byte[] port, byte[] address, string externalIPAddress, Int16 relayPort, string username, string password, string realm)
         {
             this.stunHeader = stunHeader;
-            this.isValid = isValid;
+            this.port = port;
+            this.address = address;
+            this.externalIPAddress = externalIPAddress;
+            this.relayPort = relayPort;
+            this.username = username;
+            this.password = password;
+            this.realm = realm;
+        }
+
+        public byte[] ToByte()
+        {
+            var xorRelayedAddressAttr = new StunAttributeXorRelayedAddress(this.externalIPAddress, this.relayPort, this.stunHeader.magicCookie);
+            var xorMappedAddressAttr = new StunAttributeXorMappedAddress(this.address, this.port, this.stunHeader.magicCookie);
+            var lifetimeAttr = new StunAttributeLifetime();
+            var softwareAttr = new StunAttributeSoftware();
+
+            var xorRelayedAddressAttrByte = xorRelayedAddressAttr.ToByte();
+            var xorMappedAddressAttrByte = xorMappedAddressAttr.ToByte();
+            var lifetimeAttrByte = lifetimeAttr.ToByte();
+            var softwareAttrByte = softwareAttr.ToByte();
+
+            var messageIntegrityAttrLength = 24;
+            var fingerprintAttrLength = 8;
+            var length = xorRelayedAddressAttrByte.Length + xorMappedAddressAttrByte.Length + lifetimeAttrByte.Length + softwareAttrByte.Length + messageIntegrityAttrLength + fingerprintAttrLength;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+            var resStunHeader = new StunHeader(StunMessage.ALLOCATE_SUCCESS, (Int16)(length - fingerprintAttrLength), this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeaderByte = resStunHeader.ToByte();
+
+            var res = new byte[resStunHeaderByte.Length + length];
+            int endPos = 0;
+            Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
+            endPos += resStunHeaderByte.Length;
+            Array.Copy(xorRelayedAddressAttrByte, 0, res, endPos, xorRelayedAddressAttrByte.Length);
+            endPos += xorRelayedAddressAttrByte.Length;
+            Array.Copy(xorMappedAddressAttrByte, 0, res, endPos, xorMappedAddressAttrByte.Length);
+            endPos += xorMappedAddressAttrByte.Length;
+            Array.Copy(lifetimeAttrByte, 0, res, endPos, lifetimeAttrByte.Length);
+            endPos += lifetimeAttrByte.Length;
+            Array.Copy(softwareAttrByte, 0, res, endPos, softwareAttrByte.Length);
+            endPos += softwareAttrByte.Length;
+
+            var messageIntegrityAttr = new StunAttributeMessageIntegrity(res[0..((resStunHeaderByte.Length + length) - (messageIntegrityAttrLength + fingerprintAttrLength))], this.username, this.password, this.realm);
+            var messageIntegrityAttrByte = messageIntegrityAttr.ToByte();
+            Array.Copy(messageIntegrityAttrByte, 0, res, endPos, messageIntegrityAttrByte.Length);
+            endPos += messageIntegrityAttrByte.Length;
+
+            res[2] = lengthByte[0];
+            res[3] = lengthByte[1];
+
+            var fingerprintAttr = new StunAttributeFingerprint(res);
+            var fingerprintAttrByte = fingerprintAttr.ToByte();
+            Array.Copy(fingerprintAttrByte, 0, res, endPos, fingerprintAttrByte.Length);
+            return res;
+        }
+    }
+
+    class AllocateErrorResponse
+    {
+        public readonly StunHeader stunHeader;
+        public AllocateErrorResponse(StunHeader stunHeader)
+        {
+            this.stunHeader = stunHeader;
         }
 
         public byte[] ToByte()
@@ -157,6 +231,183 @@ namespace doturn
             endPos += realmAttrByte.Length;
             Array.Copy(softwareAttrByte, 0, res, endPos, softwareAttrByte.Length);
             endPos += softwareAttrByte.Length;
+
+            var fingerprintAttr = new StunAttributeFingerprint(res);
+            var fingerprintAttrByte = fingerprintAttr.ToByte();
+            Array.Copy(fingerprintAttrByte, 0, res, endPos, fingerprintAttrByte.Length);
+            return res;
+        }
+    }
+    class RefreshRequest
+    {
+        public readonly StunHeader stunHeader;
+        public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
+        private readonly string inputUsername;
+        private readonly string inputRealm;
+
+        private readonly string username;
+        private readonly string password;
+        private readonly string realm;
+        private readonly StunAttributeMessageIntegrity messageIntegrity;
+
+        public RefreshRequest(StunHeader stunHeader, byte[] body, string username, string password, string realm)
+        {
+            this.stunHeader = stunHeader;
+            this.username = username;
+            this.password = password;
+            this.realm = realm;
+            var endPos = 0;
+            for (; body.Length > endPos;)
+            {
+                var attrTypeByte = body[(0 + endPos)..(2 + endPos)];
+                endPos += attrTypeByte.Length;
+                var attrLengthByte = body[endPos..(2 + endPos)];
+                endPos += attrLengthByte.Length;
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(attrTypeByte);
+                    Array.Reverse(attrLengthByte);
+                }
+
+                var attrType = (StunAttrType)Enum.ToObject(typeof(StunAttrType), BitConverter.ToInt16(attrTypeByte));
+                var attrLength = BitConverter.ToInt16(attrLengthByte);
+                if (attrType == StunAttrType.LIFETIME)
+                {
+                    var lifetimeByte = body[endPos..(4 + endPos)];
+                    endPos += lifetimeByte.Length;
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        Array.Reverse(lifetimeByte);
+                    }
+                    var lifetime = BitConverter.ToInt32(lifetimeByte);
+                    var stunAttributeLifetime = new StunAttributeLifetime(lifetime);
+                    this.attributes.Add(stunAttributeLifetime);
+                }
+                else if (attrType == StunAttrType.USERNAME)
+                {
+                    var usernameByte = body[endPos..(attrLength + endPos)];
+                    endPos += usernameByte.Length;
+                    var usernameStr = System.Text.Encoding.ASCII.GetString(usernameByte);
+                    var stunAttributeUsername = new StunAttributeUsername(usernameStr);
+                    this.attributes.Add(stunAttributeUsername);
+                    this.inputUsername = usernameStr;
+                }
+                else if (attrType == StunAttrType.REALM)
+                {
+                    var realmByte = body[endPos..(attrLength + endPos)];
+                    endPos += realmByte.Length;
+                    var paddingLength = 8 - ((2 + 2 + attrLength) % 8);
+                    endPos += paddingLength;
+                    string realmStr = System.Text.Encoding.ASCII.GetString(realmByte);
+                    var stunAttributeRealm = new StunAttributeRealm(realmStr);
+                    this.attributes.Add(stunAttributeRealm);
+                    this.inputRealm = realmStr;
+                }
+                else if (attrType == StunAttrType.NONCE)
+                {
+                    var nonceByte = body[endPos..(attrLength + endPos)];
+                    endPos += nonceByte.Length;
+                    var nonce = System.Text.Encoding.ASCII.GetString(nonceByte);
+                    var stunAttributeNonce = new StunAttributeNonce(nonce);
+                    this.attributes.Add(stunAttributeNonce);
+                }
+                else if (attrType == StunAttrType.MESSAGE_INTEGRITY)
+                {
+                    var messageIntegrityByte = body[endPos..(attrLength + endPos)];
+                    endPos += messageIntegrityByte.Length;
+                    var stunAttributemessageIntegrity = new StunAttributeMessageIntegrity(messageIntegrityByte);
+                    this.attributes.Add(stunAttributemessageIntegrity);
+                    this.messageIntegrity = stunAttributemessageIntegrity;
+                }
+            }
+        }
+        public bool isValid()
+        {
+            if (this.messageIntegrity == null)
+            {
+                return false;
+            }
+            var messageIntegrityByte = this.messageIntegrity.ToByte();
+            var messageByte = new byte[this.stunHeader.messageLength + 20 - messageIntegrityByte.Length];
+            var stunHeaderByte = this.stunHeader.ToByte();
+            var endPos = 0;
+            Array.Copy(stunHeaderByte, 0, messageByte, endPos, stunHeaderByte.Length);
+            endPos += stunHeaderByte.Length;
+            foreach (var attr in this.attributes)
+            {
+                if (attr.AttrType == StunAttrType.MESSAGE_INTEGRITY)
+                {
+                    break;
+                }
+                var attrByte = attr.ToByte();
+                Array.Copy(attrByte, 0, messageByte, endPos, attrByte.Length);
+                endPos += attrByte.Length;
+            }
+
+            var md5 = MD5.Create();
+            var keyString = $"{this.username}:{this.realm}:{this.password}";
+            var keyStringByte = System.Text.Encoding.ASCII.GetBytes(keyString);
+            var md5HashByte = md5.ComputeHash(keyStringByte);
+            var hmacSHA1 = new HMACSHA1(md5HashByte);
+            md5.Clear();
+            var hmacSHA1Byte = hmacSHA1.ComputeHash(messageByte);
+            var hmacSHA1String = BitConverter.ToString(hmacSHA1Byte);
+            hmacSHA1.Clear();
+            var messageIntegrityString = BitConverter.ToString(this.messageIntegrity.messageIntegrity);
+
+            return hmacSHA1String == messageIntegrityString;
+        }
+    }
+
+    class RefreshSuccessResponse
+    {
+        public readonly StunHeader stunHeader;
+        private readonly string username;
+        private readonly string password;
+        private readonly string realm;
+        public RefreshSuccessResponse(StunHeader stunHeader, string username, string password, string realm)
+        {
+            this.stunHeader = stunHeader;
+            this.username = username;
+            this.password = password;
+            this.realm = realm;
+        }
+
+        public byte[] ToByte()
+        {
+            var lifetimeAttr = new StunAttributeLifetime();
+            var softwareAttr = new StunAttributeSoftware();
+
+            var lifetimeAttrByte = lifetimeAttr.ToByte();
+            var softwareAttrByte = softwareAttr.ToByte();
+
+            var messageIntegrityAttrLength = 24;
+            var fingerprintAttrLength = 8;
+            var length = lifetimeAttrByte.Length + softwareAttrByte.Length + messageIntegrityAttrLength + fingerprintAttrLength;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+            var resStunHeader = new StunHeader(StunMessage.REFRESH_SUCCESS, (Int16)(length - fingerprintAttrLength), this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeaderByte = resStunHeader.ToByte();
+
+            var res = new byte[resStunHeaderByte.Length + length];
+            int endPos = 0;
+            Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
+            endPos += resStunHeaderByte.Length;
+            Array.Copy(lifetimeAttrByte, 0, res, endPos, lifetimeAttrByte.Length);
+            endPos += lifetimeAttrByte.Length;
+            Array.Copy(softwareAttrByte, 0, res, endPos, softwareAttrByte.Length);
+            endPos += softwareAttrByte.Length;
+
+            var messageIntegrityAttr = new StunAttributeMessageIntegrity(res[0..((resStunHeaderByte.Length + length) - (messageIntegrityAttrLength + fingerprintAttrLength))], this.username, this.password, this.realm);
+            var messageIntegrityAttrByte = messageIntegrityAttr.ToByte();
+            Array.Copy(messageIntegrityAttrByte, 0, res, endPos, messageIntegrityAttrByte.Length);
+            endPos += messageIntegrityAttrByte.Length;
+
+            res[2] = lengthByte[0];
+            res[3] = lengthByte[1];
 
             var fingerprintAttr = new StunAttributeFingerprint(res);
             var fingerprintAttrByte = fingerprintAttr.ToByte();
