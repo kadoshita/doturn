@@ -489,4 +489,55 @@ namespace doturn
             }
         }
     }
+    class CreatePermissionSuccessResponse
+    {
+        public readonly StunHeader stunHeader;
+        private readonly string username;
+        private readonly string password;
+        private readonly string realm;
+        public CreatePermissionSuccessResponse(StunHeader stunHeader, string username, string password, string realm)
+        {
+            this.stunHeader = stunHeader;
+            this.username = username;
+            this.password = password;
+            this.realm = realm;
+        }
+
+        public byte[] ToByte()
+        {
+            var softwareAttr = new StunAttributeSoftware();
+            var softwareAttrByte = softwareAttr.ToByte();
+
+            var messageIntegrityAttrLength = 24;
+            var fingerprintAttrLength = 8;
+            var length = softwareAttrByte.Length + messageIntegrityAttrLength + fingerprintAttrLength;
+            var lengthByte = BitConverter.GetBytes((Int16)length);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(lengthByte);
+            }
+            var resStunHeader = new StunHeader(StunMessage.CREATE_PERMISSION_SUCCESS, (Int16)(length - fingerprintAttrLength), this.stunHeader.magicCookie, this.stunHeader.transactionId);
+            var resStunHeaderByte = resStunHeader.ToByte();
+
+            var res = new byte[resStunHeaderByte.Length + length];
+            int endPos = 0;
+            Array.Copy(resStunHeaderByte, 0, res, endPos, resStunHeaderByte.Length);
+            endPos += resStunHeaderByte.Length;
+            Array.Copy(softwareAttrByte, 0, res, endPos, softwareAttrByte.Length);
+            endPos += softwareAttrByte.Length;
+
+            var messageIntegrityAttr = new StunAttributeMessageIntegrity(res[0..((resStunHeaderByte.Length + length) - (messageIntegrityAttrLength + fingerprintAttrLength))], this.username, this.password, this.realm);
+            var messageIntegrityAttrByte = messageIntegrityAttr.ToByte();
+            Array.Copy(messageIntegrityAttrByte, 0, res, endPos, messageIntegrityAttrByte.Length);
+            endPos += messageIntegrityAttrByte.Length;
+
+            res[2] = lengthByte[0];
+            res[3] = lengthByte[1];
+
+            var fingerprintAttr = new StunAttributeFingerprint(res);
+            var fingerprintAttrByte = fingerprintAttr.ToByte();
+            Array.Copy(fingerprintAttrByte, 0, res, endPos, fingerprintAttrByte.Length);
+            return res;
+        }
+    }
 }
