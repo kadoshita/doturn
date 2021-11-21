@@ -100,6 +100,13 @@ namespace doturn
                             listener.Send(res, res.Length, endpoint);
                         }
                     }
+                    else if (stunHeader.messageType == StunMessage.CREATE_PERMISSION)
+                    {
+                        var createPermissionRequest = new CreatePermissionRequest(stunHeader, buffer[20..buffer.Length]);
+                        var createPermissionSuccessResponse = new CreatePermissionSuccessResponse(stunHeader, username, password, realm);
+                        var res = createPermissionSuccessResponse.ToByte();
+                        listener.Send(res, res.Length, endpoint);
+                    }
                 }
             }
             catch (SocketException e)
