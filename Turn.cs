@@ -415,4 +415,78 @@ namespace doturn
             return res;
         }
     }
+
+    class CreatePermissionRequest
+    {
+        public readonly StunHeader stunHeader;
+        public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
+
+        public CreatePermissionRequest(StunHeader stunHeader, byte[] body)
+        {
+            this.stunHeader = stunHeader;
+
+            var endPos = 0;
+            for (; body.Length > endPos;)
+            {
+                var attrTypeByte = body[(0 + endPos)..(2 + endPos)];
+                endPos += attrTypeByte.Length;
+                var attrLengthByte = body[endPos..(2 + endPos)];
+                endPos += attrLengthByte.Length;
+                if (BitConverter.IsLittleEndian)
+                {
+                    Array.Reverse(attrTypeByte);
+                    Array.Reverse(attrLengthByte);
+                }
+
+                var attrType = (StunAttrType)Enum.ToObject(typeof(StunAttrType), BitConverter.ToInt16(attrTypeByte));
+                var attrLength = BitConverter.ToInt16(attrLengthByte);
+                if (attrType == StunAttrType.XOR_PEER_ADDRESS)
+                {
+                    var reservedByte = body[endPos..(1 + endPos)];
+                    endPos += reservedByte.Length;
+                    var addressFamilyByte = body[endPos..(1 + endPos)];
+                    endPos += addressFamilyByte.Length;
+                    var xorPortByte = body[endPos..(2 + endPos)];
+                    endPos += xorPortByte.Length;
+                    var xorAddressByte = body[endPos..(4 + endPos)];
+                    endPos += xorAddressByte.Length;
+                    var stunAttributeXorPeerAddress = new StunAttributeXorPeerAddress(xorAddressByte, xorPortByte, this.stunHeader.magicCookie);
+                    this.attributes.Add(stunAttributeXorPeerAddress);
+                }
+                else if (attrType == StunAttrType.USERNAME)
+                {
+                    var usernameByte = body[endPos..(attrLength + endPos)];
+                    endPos += usernameByte.Length;
+                    var usernameStr = System.Text.Encoding.ASCII.GetString(usernameByte);
+                    var stunAttributeUsername = new StunAttributeUsername(usernameStr);
+                    this.attributes.Add(stunAttributeUsername);
+                }
+                else if (attrType == StunAttrType.REALM)
+                {
+                    var realmByte = body[endPos..(attrLength + endPos)];
+                    endPos += realmByte.Length;
+                    var paddingLength = 8 - ((2 + 2 + attrLength) % 8);
+                    endPos += paddingLength;
+                    string realmStr = System.Text.Encoding.ASCII.GetString(realmByte);
+                    var stunAttributeRealm = new StunAttributeRealm(realmStr);
+                    this.attributes.Add(stunAttributeRealm);
+                }
+                else if (attrType == StunAttrType.NONCE)
+                {
+                    var nonceByte = body[endPos..(attrLength + endPos)];
+                    endPos += nonceByte.Length;
+                    var nonce = System.Text.Encoding.ASCII.GetString(nonceByte);
+                    var stunAttributeNonce = new StunAttributeNonce(nonce);
+                    this.attributes.Add(stunAttributeNonce);
+                }
+                else if (attrType == StunAttrType.MESSAGE_INTEGRITY)
+                {
+                    var messageIntegrityByte = body[endPos..(attrLength + endPos)];
+                    endPos += messageIntegrityByte.Length;
+                    var stunAttributemessageIntegrity = new StunAttributeMessageIntegrity(messageIntegrityByte);
+                    this.attributes.Add(stunAttributemessageIntegrity);
+                }
+            }
+        }
+    }
 }
