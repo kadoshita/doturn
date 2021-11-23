@@ -9,8 +9,10 @@ namespace doturn
         BINDING_SUCCESS = 0x0101,
         ALLOCATE = 0x0003,
         REFRESH = 0x0004,
+        CREATE_PERMISSION = 0x0008,
         REFRESH_SUCCESS = 0x0104,
         ALLOCATE_SUCCESS = 0x0103,
+        CREATE_PERMISSION_SUCCESS = 0x0108,
         ALLOCATE_ERROR = 0x0113,
     }
     public static class StunMessageExt
@@ -33,6 +35,7 @@ namespace doturn
         MESSAGE_INTEGRITY = 0x0008,
         ERROR_CODE = 0x0009,
         LIFETIME = 0x000D,
+        XOR_PEER_ADDRESS = 0x0012,
         REALM = 0x0014,
         NONCE = 0x0015,
         XOR_RELAYED_ADDRESS = 0x0016,
