@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 namespace doturn
@@ -56,8 +57,22 @@ namespace doturn
                     }
                     else if (stunHeader.messageType == StunMessage.ALLOCATE)
                     {
-                        Int16 relayPort = 20000;
+                        var r = new Random();
+                        var rn = r.Next(10);
+                        Int16 relayPort = Convert.ToInt16(20000 + rn);
                         var allocateRequest = new AllocateRequest(stunHeader, buffer[20..buffer.Length], username, password, realm);
+                        Task t = Task.Run(() =>
+                        {
+                            Console.WriteLine($"relay {relayPort}");
+                            var l = new UdpClient(relayPort);
+                            var e = new IPEndPoint(IPAddress.Any, relayPort);
+                            while (true)
+                            {
+                                Console.WriteLine("relay wait");
+                                var b = l.Receive(ref e);
+                                Console.WriteLine(BitConverter.ToString(b));
+                            }
+                        });
                         if (allocateRequest.isValid())
                         {
                             var portByte = BitConverter.GetBytes(endpoint.Port);
