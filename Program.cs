@@ -70,7 +70,38 @@ namespace doturn
                             {
                                 Console.WriteLine("relay wait");
                                 var b = l.Receive(ref e);
-                                Console.WriteLine(BitConverter.ToString(b));
+                                if (b.Length < 12)
+                                {
+                                    continue;
+                                }
+                                var stunHeader = StunHeader.FromRawHeader(b);
+                                if (BitConverter.ToInt32(stunHeader.transactionId) == 0)
+                                {
+                                    continue;
+                                }
+                                Console.WriteLine(stunHeader.messageType);
+                                if (stunHeader.messageType == StunMessage.BINDING)
+                                {
+                                    var portByte = BitConverter.GetBytes(e.Port);
+                                    if (BitConverter.IsLittleEndian)
+                                    {
+                                        Array.Reverse(portByte);
+                                    }
+                                    var addressByte = e.Address.GetAddressBytes();
+                                    byte[] res;
+                                    if (BitConverter.ToInt32(stunHeader.magicCookie) == 0)
+                                    {
+                                        var mappedAddress = new MappedAddress(addressByte, portByte, stunHeader);
+                                        res = mappedAddress.ToByte();
+                                    }
+                                    else
+                                    {
+                                        var xorMappedAddress = new XorMappedAddress(addressByte, portByte, stunHeader);
+                                        res = xorMappedAddress.ToByte();
+                                    }
+
+                                    listener.Send(res, res.Length, e);
+                                }
                             }
                         });
                         if (allocateRequest.isValid())
