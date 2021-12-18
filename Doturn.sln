@@ -7,9 +7,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E31E4B21-E2C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doturn", "src\Doturn\Doturn.csproj", "{51F1EF01-E524-44B8-B0BB-73AC60A57BCA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{720B5A46-EEBD-4AD3-9C05-991E6EFEC836}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doturn.Test", "test\Doturn.Test\Doturn.Test.csproj", "{1C4EF77C-25A5-4CD5-A5E9-02960D228EA8}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doturn.StunMessage", "src\Doturn.StunMessage\Doturn.StunMessage.csproj", "{54F66BFF-F019-4999-89D4-D0C879424B23}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doturn.StunAttribute", "src\Doturn.StunAttribute\Doturn.StunAttribute.csproj", "{94FD3111-6AED-42C3-8C5B-68B8B394A319}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doturn.StunMessage.Test", "test\Doturn.StunMessage.Test\Doturn.StunMessage.Test.csproj", "{10F6FB1D-6CEB-4869-AE17-F32B24CF38D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Doturn.StunAttribute.Test", "test\Doturn.StunAttribute.Test\Doturn.StunAttribute.Test.csproj", "{894E3FA6-DD1A-4726-B6EF-401BDDC36F4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
