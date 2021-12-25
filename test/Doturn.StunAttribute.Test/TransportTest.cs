@@ -1,5 +1,4 @@
 using System;
-using Doturn;
 using Xunit;
 
 namespace Doturn.StunAttribute.Test
@@ -12,7 +11,7 @@ namespace Doturn.StunAttribute.Test
         public void Transport_Convert_To_ByteArray(StunAttribute.Transport transport, string byteArrayString)
         {
             var byteArray = transport.ToByte();
-            Assert.Equal(1, byteArray.Length);
+            Assert.Single(byteArray);
             Assert.Equal(byteArrayString, BitConverter.ToString(byteArray));
         }
     }
