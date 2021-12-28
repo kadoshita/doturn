@@ -33,7 +33,7 @@ namespace Doturn.StunAttribute
             byte[] padding = { 0 };
             for (var i = 0; i < paddingLength; i++)
             {
-                ByteArrayUtils.MergeByteArray(ref res, padding);
+                ByteArrayUtils.MergeByteArray(ref res, res.Length - paddingLength, padding);
             }
             return res;
         }
