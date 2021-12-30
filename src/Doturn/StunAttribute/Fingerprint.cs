@@ -1,5 +1,4 @@
 using System;
-using Doturn.Common;
 using Force.Crc32;
 
 namespace Doturn.StunAttribute

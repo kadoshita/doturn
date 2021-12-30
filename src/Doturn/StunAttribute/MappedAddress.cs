@@ -1,13 +1,12 @@
 
 using System;
 using System.Net;
-using Doturn.Common;
 
 namespace Doturn.StunAttribute
 {
     public class MappedAddress : StunAttributeBase
     {
-        public readonly Type type = StunAttribute.Type.MAPPED_ADDRESS;
+        public readonly Type type = Type.MAPPED_ADDRESS;
         public readonly IPEndPoint endpoint;
         private readonly byte[] magicCookie;
         public override Type Type => this.type;

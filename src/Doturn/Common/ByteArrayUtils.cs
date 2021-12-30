@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Doturn.Common
+namespace Doturn
 {
     public static class ByteArrayUtils
     {

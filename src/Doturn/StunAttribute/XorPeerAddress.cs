@@ -1,26 +1,25 @@
 using System;
 using System.Net;
-using Doturn.Common;
 
 namespace Doturn.StunAttribute
 {
-    public class XorRelayedAddress : StunAttributeBase
+    public class XorPeerAddress : StunAttributeBase
     {
-        public readonly Type type = Type.XOR_RELAYED_ADDRESS;
+        public readonly Type type = Type.XOR_PEER_ADDRESS;
         public readonly IPEndPoint endpoint;
         private readonly byte[] magicCookie;
         public override Type Type => this.type;
-        public XorRelayedAddress(IPAddress address, Int32 port, byte[] magicCookie)
+        public XorPeerAddress(IPAddress address, Int32 port, byte[] magicCookie)
         {
             this.endpoint = new IPEndPoint(address, port);
             this.magicCookie = magicCookie;
         }
-        public XorRelayedAddress(string address, Int32 port, byte[] magicCookie)
+        public XorPeerAddress(string address, Int32 port, byte[] magicCookie)
         {
             this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
             this.magicCookie = magicCookie;
         }
-        public XorRelayedAddress(IPEndPoint endpoint, byte[] magicCookie)
+        public XorPeerAddress(IPEndPoint endpoint, byte[] magicCookie)
         {
             this.endpoint = endpoint;
             this.magicCookie = magicCookie;

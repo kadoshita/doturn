@@ -1,5 +1,4 @@
 using System;
-using Doturn.Common;
 
 namespace Doturn.StunAttribute
 {
