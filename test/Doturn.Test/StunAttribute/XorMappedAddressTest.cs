@@ -11,8 +11,7 @@ namespace Doturn.StunAttribute.Test
         [InlineData("192.0.2.1", 20000, "00-20-00-08-00-01-62-EA-82-A4-10-20")]
         public void XorMappedAddress_Convert_To_ByteArray(string address, int port, string expect)
         {
-            var magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
-            var xorMappedAddress = new XorMappedAddress(address, port, magicCookie);
+            var xorMappedAddress = new XorMappedAddress(address, port);
             var byteArray = xorMappedAddress.ToByte();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
