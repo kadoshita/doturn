@@ -31,5 +31,15 @@ namespace Doturn.StunAttribute
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, lifetimeByteArray);
             return res;
         }
+
+        public static Lifetime Parse(byte[] data)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data);
+            }
+            var lifetimeNum = BitConverter.ToUInt16(data);
+            return new Lifetime(lifetimeNum);
+        }
     }
 }

@@ -1,4 +1,3 @@
-
 using System;
 using System.Net;
 
@@ -8,23 +7,19 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.MAPPED_ADDRESS;
         public readonly IPEndPoint endpoint;
-        private readonly byte[] magicCookie;
         public override Type Type => this.type;
 
-        public MappedAddress(IPAddress address, Int32 port, byte[] magicCookie)
+        public MappedAddress(IPAddress address, Int32 port)
         {
             this.endpoint = new IPEndPoint(address, port);
-            this.magicCookie = magicCookie;
         }
-        public MappedAddress(string address, Int32 port, byte[] magicCookie)
+        public MappedAddress(string address, Int32 port)
         {
             this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
-            this.magicCookie = magicCookie;
         }
-        public MappedAddress(IPEndPoint endpoint, byte[] magicCookie)
+        public MappedAddress(IPEndPoint endpoint)
         {
             this.endpoint = endpoint;
-            this.magicCookie = magicCookie;
         }
 
         public override byte[] ToByte()
@@ -44,6 +39,21 @@ namespace Doturn.StunAttribute
             var res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, portByteArray, addressByteArray);
             return res;
+        }
+
+        public static IStunAttribute Parse(byte[] data)
+        {
+            var reservedByteArray = data[0..1];
+            var protocolFamilyByteArray = data[1..2];
+            var portByteArray = data[2..4];
+            var addressByteArray = data[4..data.Length];
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(portByteArray);
+            }
+            var port = (Int32)BitConverter.ToInt16(portByteArray);
+            var address = new IPAddress(addressByteArray);
+            return new MappedAddress(address, port);
         }
     }
 }

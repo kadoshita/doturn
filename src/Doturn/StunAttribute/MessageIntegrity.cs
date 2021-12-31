@@ -39,5 +39,10 @@ namespace Doturn.StunAttribute
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, this.messageIntegrity);
             return res;
         }
+
+        public static MessageIntegrity Parse(byte[] data)
+        {
+            return new MessageIntegrity(data);
+        }
     }
 }

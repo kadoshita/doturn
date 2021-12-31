@@ -5,9 +5,9 @@ namespace Doturn.StunAttribute
     public class ErrorCode : StunAttributeBase
     {
         public readonly Type type = Type.ERROR_CODE;
-        private readonly byte errorClass;
-        private readonly byte errorCode;
-        private readonly string errorReasonPhrase;
+        public readonly byte errorClass;
+        public readonly byte errorCode;
+        public readonly string errorReasonPhrase;
         public override Type Type => this.type;
         public ErrorCode(byte errorClass, byte errorCode, string errorReasonPhrase)
         {
@@ -30,6 +30,15 @@ namespace Doturn.StunAttribute
             var res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, errorByteArray, errorReasonPhraseByteArray);
             return res;
+        }
+
+        public static ErrorCode Parse(byte[] data)
+        {
+            var reserved = data[0..2];
+            var errorClassByte = data[2];
+            var errorCodeByte = data[3];
+            var errorReasonPhrase = System.Text.Encoding.ASCII.GetString(data[4..data.Length]);
+            return new ErrorCode(errorClassByte, errorCodeByte, errorReasonPhrase);
         }
     }
 }

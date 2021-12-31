@@ -9,7 +9,11 @@ namespace Doturn.StunAttribute
         private readonly byte[] crc32;
         public override Type Type => this.type;
 
-        public Fingerprint(ref byte[] data)
+        public Fingerprint(byte[] crc32)
+        {
+            this.crc32 = crc32;
+        }
+        public static Fingerprint CreateFingerprint(ref byte[] data)
         {
             var crc32 = Crc32Algorithm.Compute(data, 0, data.Length);
             var crc32Byte = BitConverter.GetBytes(crc32);
@@ -27,7 +31,7 @@ namespace Doturn.StunAttribute
             {
                 crc32XorByte[i] = (byte)(crc32Byte[i] ^ fingerprintXor[i]);
             }
-            this.crc32 = crc32XorByte;
+            return new Fingerprint(crc32XorByte);
         }
         public override byte[] ToByte()
         {
@@ -42,6 +46,11 @@ namespace Doturn.StunAttribute
             var res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, this.crc32);
             return res;
+        }
+
+        public static Fingerprint Parse(byte[] data)
+        {
+            return new Fingerprint(data);
         }
     }
 }

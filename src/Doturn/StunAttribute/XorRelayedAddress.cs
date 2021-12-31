@@ -7,22 +7,19 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.XOR_RELAYED_ADDRESS;
         public readonly IPEndPoint endpoint;
-        private readonly byte[] magicCookie;
+        private readonly byte[] magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
         public override Type Type => this.type;
-        public XorRelayedAddress(IPAddress address, Int32 port, byte[] magicCookie)
+        public XorRelayedAddress(IPAddress address, Int32 port)
         {
             this.endpoint = new IPEndPoint(address, port);
-            this.magicCookie = magicCookie;
         }
-        public XorRelayedAddress(string address, Int32 port, byte[] magicCookie)
+        public XorRelayedAddress(string address, Int32 port)
         {
             this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
-            this.magicCookie = magicCookie;
         }
-        public XorRelayedAddress(IPEndPoint endpoint, byte[] magicCookie)
+        public XorRelayedAddress(IPEndPoint endpoint)
         {
             this.endpoint = endpoint;
-            this.magicCookie = magicCookie;
         }
 
         public override byte[] ToByte()
@@ -52,6 +49,21 @@ namespace Doturn.StunAttribute
             var res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, xorPortByteArray, xorAddressByteArray);
             return res;
+        }
+
+        public static XorRelayedAddress Parse(byte[] data)
+        {
+            var reservedByteArray = data[0..1];
+            var protocolFamilyByteArray = data[1..2];
+            var portByteArray = data[2..4];
+            var addressByteArray = data[4..data.Length];
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(portByteArray);
+            }
+            var port = (Int32)BitConverter.ToInt16(portByteArray);
+            var address = new IPAddress(addressByteArray);
+            return new XorRelayedAddress(address, port);
         }
     }
 }

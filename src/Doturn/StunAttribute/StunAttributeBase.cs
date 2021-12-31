@@ -1,6 +1,6 @@
 namespace Doturn.StunAttribute
 {
-    interface IStunAttribute
+    public interface IStunAttribute
     {
         Type Type { get; }
         byte[] ToByte();

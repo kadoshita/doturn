@@ -40,5 +40,10 @@ namespace Doturn.StunAttribute
             }
             return res;
         }
+        public static Software Parse(byte[] data)
+        {
+            var softwareStr = System.Text.Encoding.ASCII.GetString(data);
+            return new Software(softwareStr);
+        }
     }
 }

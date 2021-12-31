@@ -38,5 +38,11 @@ namespace Doturn.StunAttribute
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
+        public static Nonce Parse(byte[] data)
+        {
+            var nonceStr = System.Text.Encoding.ASCII.GetString(data);
+            return new Nonce(nonceStr);
+        }
     }
 }

@@ -33,5 +33,11 @@ namespace Doturn.StunAttribute
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, transportByteArray, this.reserved);
             return res;
         }
+        public static RequestedTransport Parse(byte[] data)
+        {
+            var reserved = data[1..data.Length];
+            var transport = (Transport)Enum.ToObject(typeof(Transport), (byte)data[0]);
+            return new RequestedTransport(transport, reserved);
+        }
     }
 }

@@ -36,5 +36,11 @@ namespace Doturn.StunAttribute
             }
             return res;
         }
+
+        public static Realm Parse(byte[] data)
+        {
+            string realmStr = System.Text.Encoding.ASCII.GetString(data);
+            return new Realm(realmStr);
+        }
     }
 }

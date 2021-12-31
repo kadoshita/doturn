@@ -35,5 +35,10 @@ namespace Doturn.StunAttribute
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, usernameByteArray);
             return res;
         }
+        public static Username Parse(byte[] data)
+        {
+            var usernameStr = System.Text.Encoding.ASCII.GetString(data);
+            return new Username(usernameStr);
+        }
     }
 }
