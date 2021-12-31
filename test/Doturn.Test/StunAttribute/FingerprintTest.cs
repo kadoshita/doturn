@@ -10,8 +10,8 @@ namespace Doturn.StunAttribute.Test
         [InlineData(new byte[] { 0x10, 0xfa, 0x49, 0xff }, "80-28-00-04-96-E3-30-0A")]
         public void Fingerprint_Set_ByteArray_In_Constructor(byte[] data, string expect)
         {
-            var Fingerprint = new Fingerprint(ref data);
-            var byteArray = Fingerprint.ToByte();
+            var fingerprint = Fingerprint.CreateFingerprint(ref data);
+            var byteArray = fingerprint.ToByte();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
