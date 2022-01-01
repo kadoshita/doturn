@@ -22,5 +22,37 @@ namespace Doturn
                 endPos += datum.Length;
             }
         }
+
+        public static byte[] XorPort(byte[] portByteArray)
+        {
+            var magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(magicCookie);
+            }
+            var xorPortByteArray = new byte[portByteArray.Length];
+            for (var i = 0; i < portByteArray.Length; i++)
+            {
+                xorPortByteArray[i] = (byte)(portByteArray[i] ^ magicCookie[i]);
+            }
+
+            return xorPortByteArray;
+        }
+
+        public static byte[] XorAddress(byte[] addressByteArray)
+        {
+            var magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(magicCookie);
+            }
+            var xorAddressByteArray = new byte[addressByteArray.Length];
+            for (var i = 0; i < addressByteArray.Length; i++)
+            {
+                xorAddressByteArray[i] = (byte)(addressByteArray[i] ^ magicCookie[i]);
+            }
+
+            return xorAddressByteArray;
+        }
     }
 }

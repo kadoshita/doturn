@@ -7,7 +7,6 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.XOR_PEER_ADDRESS;
         public readonly IPEndPoint endpoint;
-        private readonly byte[] magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
         public override Type Type => this.type;
         public XorPeerAddress(IPAddress address, Int32 port)
         {
@@ -27,16 +26,12 @@ namespace Doturn.StunAttribute
             var typeByteArray = this.type.ToBytes();
             var addressByteArray = this.endpoint.Address.GetAddressBytes();
             var portByteArray = BitConverter.GetBytes((Int16)this.endpoint.Port);
-            var xorAddressByteArray = new byte[addressByteArray.Length];
-            var xorPortByteArray = new byte[portByteArray.Length];
-            for (var i = 0; i < addressByteArray.Length; i++)
+            if (BitConverter.IsLittleEndian)
             {
-                xorAddressByteArray[i] = (byte)(addressByteArray[i] ^ this.magicCookie[i]);
+                Array.Reverse(portByteArray);
             }
-            for (var i = 0; i < portByteArray.Length; i++)
-            {
-                xorPortByteArray[i] = (byte)(portByteArray[i] ^ this.magicCookie[i]);
-            }
+            var xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
+            var xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
 
             byte[] reserved = { 0x00 };
             byte[] addressFamilyByte = { 0x01 };
