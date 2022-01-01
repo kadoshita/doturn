@@ -11,7 +11,7 @@ namespace Doturn.StunAttribute.Test
         public void Nonce_Convert_To_ByteArray(string nonce, string expect)
         {
             var nonceObj = new Nonce(nonce);
-            var byteArray = nonceObj.ToByte();
+            var byteArray = nonceObj.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
@@ -20,7 +20,7 @@ namespace Doturn.StunAttribute.Test
         public void Random_Nonce_Convert_To_ByteArray()
         {
             var nonceObj = new Nonce();
-            var byteArray = nonceObj.ToByte();
+            var byteArray = nonceObj.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(20, byteArray.Length);
             Assert.StartsWith("00-15-00-10", byteArrayString);

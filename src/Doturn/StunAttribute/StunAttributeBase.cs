@@ -3,12 +3,12 @@ namespace Doturn.StunAttribute
     public interface IStunAttribute
     {
         Type Type { get; }
-        byte[] ToByte();
+        byte[] ToBytes();
     }
     public abstract class StunAttributeBase : IStunAttribute
     {
         public abstract Type Type { get; }
 
-        public abstract byte[] ToByte();
+        public abstract byte[] ToBytes();
     }
 }

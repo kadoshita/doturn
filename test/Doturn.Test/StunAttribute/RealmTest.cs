@@ -11,7 +11,7 @@ namespace Doturn.StunAttribute.Test
         public void Realm_Convert_To_ByteArray(string realm, string expect)
         {
             var realmObj = new Realm(realm);
-            var byteArray = realmObj.ToByte();
+            var byteArray = realmObj.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }

@@ -16,9 +16,9 @@ namespace Doturn.StunAttribute
             this.realm = realm;
         }
 
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var realmByteArray = System.Text.Encoding.ASCII.GetBytes(this.realm);
             var length = realmByteArray.Length;
             var paddingLength = 8 - ((2 + 2 + length) % 8);

@@ -21,9 +21,9 @@ namespace Doturn.StunAttribute
             this.username = username;
         }
 
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             byte[] usernameByteArray = System.Text.Encoding.ASCII.GetBytes(this.username);
             var length = usernameByteArray.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);

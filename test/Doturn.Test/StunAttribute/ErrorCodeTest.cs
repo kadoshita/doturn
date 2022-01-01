@@ -10,7 +10,7 @@ namespace Doturn.StunAttribute.Test
         public void ErrorCode_Convert_To_ByteArray(byte errorClass, byte errorCode, string errorReasonPhrase, string expect)
         {
             var errorCodeObj = new ErrorCode(errorClass, errorCode, errorReasonPhrase);
-            var byteArray = errorCodeObj.ToByte();
+            var byteArray = errorCodeObj.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }

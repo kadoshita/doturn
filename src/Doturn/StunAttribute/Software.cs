@@ -16,9 +16,9 @@ namespace Doturn.StunAttribute
             this.software = software;
         }
 
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var softwareByteArray = System.Text.Encoding.ASCII.GetBytes(this.software);
             var length = softwareByteArray.Length;
             var paddingLength = 8 - ((2 + 2 + length) % 8);

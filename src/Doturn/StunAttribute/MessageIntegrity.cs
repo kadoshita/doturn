@@ -25,9 +25,9 @@ namespace Doturn.StunAttribute
             this.messageIntegrity = hmacSHA1ByteArray;
             hmacSHA1.Clear();
         }
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var length = this.messageIntegrity.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)

@@ -18,9 +18,9 @@ namespace Doturn.StunAttribute
             this.nonce = nonce;
         }
 
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var nonceByteArray = System.Text.Encoding.ASCII.GetBytes(this.nonce);
             var length = nonceByteArray.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);

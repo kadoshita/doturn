@@ -15,9 +15,9 @@ namespace Doturn.StunAttribute
             this.errorCode = errorCode;
             this.errorReasonPhrase = errorReasonPhrase;
         }
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             byte[] errorByteArray = { this.errorClass, this.errorCode };
             var errorReasonPhraseByteArray = System.Text.Encoding.ASCII.GetBytes(this.errorReasonPhrase);
             var reserved = BitConverter.GetBytes((Int16)0x0000);

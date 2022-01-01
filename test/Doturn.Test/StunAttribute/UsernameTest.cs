@@ -12,7 +12,7 @@ namespace Doturn.StunAttribute.Test
         public void Username_Convert_To_ByteArray(string name, string expect)
         {
             var username = new Username(name);
-            var byteArray = username.ToByte();
+            var byteArray = username.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }

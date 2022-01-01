@@ -16,9 +16,9 @@ namespace Doturn.StunAttribute
         {
             this.lifetime = lifetime;
         }
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var lifetimeByteArray = BitConverter.GetBytes(this.lifetime);
             var length = lifetimeByteArray.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);

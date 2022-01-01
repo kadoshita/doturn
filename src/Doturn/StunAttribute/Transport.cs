@@ -10,7 +10,7 @@ namespace Doturn.StunAttribute
     }
     public static class TransportExtends
     {
-        public static byte[] ToByte(this Transport transport)
+        public static byte[] ToBytes(this Transport transport)
         {
             byte[] res = { BitConverter.GetBytes((byte)transport)[0] };
             return res;

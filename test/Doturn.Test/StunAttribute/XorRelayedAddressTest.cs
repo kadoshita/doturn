@@ -12,7 +12,7 @@ namespace Doturn.StunAttribute.Test
         public void XorRelayedAddress_Convert_To_ByteArray(string address, int port, string expect)
         {
             var xorRelayedAddress = new XorRelayedAddress(address, port);
-            var byteArray = xorRelayedAddress.ToByte();
+            var byteArray = xorRelayedAddress.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }

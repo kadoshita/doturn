@@ -21,7 +21,7 @@ namespace Doturn.StunAttribute
     }
     public static class StunAttributeTypeExtends
     {
-        public static byte[] ToByte(this Type stunAttributeType)
+        public static byte[] ToBytes(this Type stunAttributeType)
         {
             var arr = BitConverter.GetBytes((Int16)stunAttributeType);
             if (BitConverter.IsLittleEndian)

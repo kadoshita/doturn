@@ -22,9 +22,9 @@ namespace Doturn.StunAttribute
             this.endpoint = endpoint;
         }
 
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var addressByteArray = this.endpoint.Address.GetAddressBytes();
             var portByteArray = BitConverter.GetBytes((Int16)this.endpoint.Port);
             var xorAddressByteArray = new byte[addressByteArray.Length];

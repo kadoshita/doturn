@@ -19,10 +19,10 @@ namespace Doturn.StunAttribute
             this.transport = transport;
             this.reserved = reserved;
         }
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
-            var transportByteArray = this.transport.ToByte();
+            var typeByteArray = this.type.ToBytes();
+            var transportByteArray = this.transport.ToBytes();
             var length = transportByteArray.Length + this.reserved.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)

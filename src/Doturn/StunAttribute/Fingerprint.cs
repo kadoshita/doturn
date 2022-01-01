@@ -33,9 +33,9 @@ namespace Doturn.StunAttribute
             }
             return new Fingerprint(crc32XorByte);
         }
-        public override byte[] ToByte()
+        public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToByte();
+            var typeByteArray = this.type.ToBytes();
             var length = this.crc32.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)

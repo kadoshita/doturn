@@ -11,7 +11,7 @@ namespace Doturn.StunAttribute.Test
         public void software_Convert_To_ByteArray(string software, string expect)
         {
             var softwareObj = new Software(software);
-            var byteArray = softwareObj.ToByte();
+            var byteArray = softwareObj.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }

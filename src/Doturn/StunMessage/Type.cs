@@ -19,7 +19,7 @@ namespace Doturn.StunMessage
     }
     public static class StunMessageTypeExtends
     {
-        public static byte[] ToByte(this Type stunMessageType)
+        public static byte[] ToBytes(this Type stunMessageType)
         {
             var arr = BitConverter.GetBytes((Int16)stunMessageType);
             if (BitConverter.IsLittleEndian)

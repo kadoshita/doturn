@@ -11,7 +11,7 @@ namespace Doturn.StunAttribute.Test
         public void Fingerprint_Set_ByteArray_In_Constructor(byte[] data, string expect)
         {
             var fingerprint = Fingerprint.CreateFingerprint(ref data);
-            var byteArray = fingerprint.ToByte();
+            var byteArray = fingerprint.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }

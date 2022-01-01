@@ -12,7 +12,7 @@ namespace Doturn.StunAttribute.Test
         public void XorMappedAddress_Convert_To_ByteArray(string address, int port, string expect)
         {
             var xorMappedAddress = new XorMappedAddress(address, port);
-            var byteArray = xorMappedAddress.ToByte();
+            var byteArray = xorMappedAddress.ToBytes();
             var byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
