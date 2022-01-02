@@ -22,6 +22,13 @@ namespace Doturn
             }
             this.magicCookie = _magicCookie;
         }
+        public StunHeader(StunMessage.Type type, Int16 messageLength, byte[] magicCookie, byte[] transactionId)
+        {
+            this.type = type;
+            this.messageLength = messageLength;
+            this.transactionId = transactionId;
+            this.magicCookie = magicCookie;
+        }
         public StunHeader(byte[] data)
         {
             var messageTypeByteArray = data[0..2];
