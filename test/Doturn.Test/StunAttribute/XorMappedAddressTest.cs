@@ -6,16 +6,19 @@ namespace Doturn.StunAttribute.Test
     public class XorMappedAddressTest
     {
         [Theory]
-        [InlineData("127.0.0.1", 20000, "00-20-00-08-00-01-6F-32-5E-12-A4-43")]
-        [InlineData("203.0.113.1", 20000, "00-20-00-08-00-01-6F-32-EA-12-D5-43")]
-        [InlineData("192.0.2.1", 20000, "00-20-00-08-00-01-6F-32-E1-12-A6-43")]
-        [InlineData("94.36.122.203", 20000, "00-20-00-08-00-01-6F-32-7F-36-DE-89")]
-        public void XorMappedAddress_Convert_To_ByteArray(string address, int port, string expect)
+        [InlineData("127.0.0.1", 20000, new byte[] { 0x00, 0x20, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x5E, 0x12, 0xA4, 0x43 }, "94.18.164.67")]
+        [InlineData("203.0.113.1", 20000, new byte[] { 0x00, 0x20, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0xEA, 0x12, 0xD5, 0x43 }, "234.18.213.67")]
+        [InlineData("192.0.2.1", 20000, new byte[] { 0x00, 0x20, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0xE1, 0x12, 0xA6, 0x43 }, "225.18.166.67")]
+        [InlineData("94.36.122.203", 20000, new byte[] { 0x00, 0x20, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x7F, 0x36, 0xDE, 0x89 }, "127.54.222.137")]
+        public void XorMappedAddress_Convert_To_ByteArray(string xorAddress, UInt16 xorPort, byte[] expect, string address)
         {
-            var xorMappedAddress = new XorMappedAddress(address, port);
+            var xorMappedAddress = new XorMappedAddress(xorAddress, xorPort);
             var byteArray = xorMappedAddress.ToBytes();
-            var byteArrayString = BitConverter.ToString(byteArray);
-            Assert.Equal(expect, byteArrayString);
+            Assert.Equal(expect, byteArray);
+            Assert.Equal(xorAddress, xorMappedAddress.xorEndpoint.Address.ToString());
+            Assert.Equal(xorPort, xorMappedAddress.xorEndpoint.Port);
+            Assert.Equal(28466, xorMappedAddress.endpoint.Port);
+            Assert.Equal(address, xorMappedAddress.endpoint.Address.ToString());
         }
     }
 }
