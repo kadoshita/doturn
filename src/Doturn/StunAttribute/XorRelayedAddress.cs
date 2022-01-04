@@ -9,51 +9,55 @@ namespace Doturn.StunAttribute
         public readonly IPEndPoint endpoint;
         public readonly IPEndPoint xorEndpoint;
         public override Type Type => this.type;
-        public XorRelayedAddress(IPAddress xorAddress, UInt16 xorPort)
+        public XorRelayedAddress(IPAddress address, UInt16 port)
         {
-            var _xorEndpoint = new IPEndPoint(xorAddress, xorPort);
-            this.xorEndpoint = _xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(_xorEndpoint);
+            this.endpoint = new IPEndPoint(address, port);
+            this.xorEndpoint = this.endpointXor(address.ToString(), port);
         }
-        public XorRelayedAddress(string xorAddress, UInt16 xorPort)
+        public XorRelayedAddress(string address, UInt16 port)
         {
-            var _xorEndpoint = new IPEndPoint(IPAddress.Parse(xorAddress), xorPort);
-            this.xorEndpoint = _xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(_xorEndpoint);
+            this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
+            this.xorEndpoint = this.endpointXor(address, port);
         }
-        public XorRelayedAddress(IPEndPoint xorEndpoint)
+        public XorRelayedAddress(IPEndPoint endPoint)
         {
-            this.xorEndpoint = xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(xorEndpoint);
+            this.endpoint = endPoint;
+            this.xorEndpoint = this.endpointXor(endPoint.Address.ToString(), (UInt16)endPoint.Port);
         }
-        private IPEndPoint xorEndpointToEndpoint(IPEndPoint xorEndpoint)
+        public XorRelayedAddress(byte[] xorAddressByteArray, byte[] xorPortByteArray)
         {
-            var xorAddressByteArray = xorEndpoint.Address.GetAddressBytes();
-            var xorPortByteArray = BitConverter.GetBytes((UInt16)xorEndpoint.Port);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(xorPortByteArray);
             }
-            var addressByteArray = ByteArrayUtils.XorAddress(xorAddressByteArray);
-            var portByteArray = ByteArrayUtils.XorPort(xorPortByteArray);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(portByteArray);
-            }
-            return new IPEndPoint(new IPAddress(addressByteArray), BitConverter.ToUInt16(portByteArray));
+            var xorAddress = new IPAddress(xorAddressByteArray);
+            var xorPort = BitConverter.ToUInt16(xorPortByteArray);
+            var xorEndpoint = new IPEndPoint(xorAddress, xorPort);
+            this.xorEndpoint = xorEndpoint;
+            this.endpoint = endpointXor(xorAddress.ToString(), xorPort);
         }
-
-        public override byte[] ToBytes()
+        private IPEndPoint endpointXor(string address, UInt16 port)
         {
-            var typeByteArray = this.type.ToBytes();
-            var addressByteArray = this.xorEndpoint.Address.GetAddressBytes();
-            var portByteArray = BitConverter.GetBytes((Int16)this.xorEndpoint.Port);
+            var addressByteArray = IPAddress.Parse(address).GetAddressBytes();
+            var portByteArray = BitConverter.GetBytes((UInt16)port);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
             }
             var xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
             var xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(xorPortByteArray);
+            }
+            return new IPEndPoint(new IPAddress(xorAddressByteArray), BitConverter.ToUInt16(xorPortByteArray));
+        }
+
+        public override byte[] ToBytes()
+        {
+            var typeByteArray = this.type.ToBytes();
+            var xorAddressByteArray = this.xorEndpoint.Address.GetAddressBytes();
+            var xorPortByteArray = BitConverter.GetBytes((Int16)this.xorEndpoint.Port);
 
             byte[] reserved = { 0x00 };
             byte[] addressFamilyByte = { 0x01 };
@@ -61,6 +65,7 @@ namespace Doturn.StunAttribute
             var lengthByteArray = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)
             {
+                Array.Reverse(xorPortByteArray);
                 Array.Reverse(lengthByteArray);
             }
             var res = new byte[2 + 2 + length];
@@ -74,13 +79,8 @@ namespace Doturn.StunAttribute
             var protocolFamilyByteArray = data[1..2];
             var portByteArray = data[2..4];
             var addressByteArray = data[4..data.Length];
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(portByteArray);
-            }
-            var port = BitConverter.ToUInt16(portByteArray);
-            var address = new IPAddress(addressByteArray);
-            return new XorRelayedAddress(address, port);
+
+            return new XorRelayedAddress(addressByteArray, portByteArray);
         }
     }
 }
