@@ -19,10 +19,10 @@ namespace Doturn.StunAttribute
             this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
             this.xorEndpoint = this.endpointXor(address, port);
         }
-        public XorRelayedAddress(IPEndPoint endPoint)
+        public XorRelayedAddress(IPEndPoint endpoint)
         {
-            this.endpoint = endPoint;
-            this.xorEndpoint = this.endpointXor(endPoint.Address.ToString(), (UInt16)endPoint.Port);
+            this.endpoint = endpoint;
+            this.xorEndpoint = this.endpointXor(endpoint.Address.ToString(), (UInt16)endpoint.Port);
         }
         public XorRelayedAddress(byte[] xorAddressByteArray, byte[] xorPortByteArray)
         {
