@@ -9,46 +9,56 @@ namespace Doturn.StunAttribute
         public readonly IPEndPoint endpoint;
         public readonly IPEndPoint xorEndpoint;
         public override Type Type => this.type;
-        public XorPeerAddress(IPAddress xorAddress, UInt16 xorPort)
+        public XorPeerAddress(IPAddress address, UInt16 port)
         {
-            var _xorEndpoint = new IPEndPoint(xorAddress, xorPort);
-            this.xorEndpoint = _xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(_xorEndpoint);
+            this.endpoint = new IPEndPoint(address, port);
+            this.xorEndpoint = this.endpointXor(address.ToString(), port);
         }
-        public XorPeerAddress(string xorAddress, UInt16 xorPort)
+        public XorPeerAddress(string address, UInt16 port)
         {
-            var _xorEndpoint = new IPEndPoint(IPAddress.Parse(xorAddress), xorPort);
-            this.xorEndpoint = _xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(_xorEndpoint);
+            this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
+            this.xorEndpoint = this.endpointXor(address, port);
         }
-        public XorPeerAddress(IPEndPoint xorEndpoint)
+        public XorPeerAddress(IPEndPoint endpoint)
         {
-            this.xorEndpoint = xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(xorEndpoint);
+            this.endpoint = endpoint;
+            this.endpoint = this.endpointXor(endpoint.Address.ToString(), (UInt16)endpoint.Port);
         }
-
-        private IPEndPoint xorEndpointToEndpoint(IPEndPoint xorEndpoint)
+        public XorPeerAddress(byte[] xorAddressByteArray, byte[] xorPortByteArray)
         {
-            var xorAddressByteArray = xorEndpoint.Address.GetAddressBytes();
-            var xorPortByteArray = BitConverter.GetBytes((UInt16)xorEndpoint.Port);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(xorPortByteArray);
             }
-            var addressByteArray = ByteArrayUtils.XorAddress(xorAddressByteArray);
-            var portByteArray = ByteArrayUtils.XorPort(xorPortByteArray);
+            var xorAddress = new IPAddress(xorAddressByteArray);
+            var xorPort = BitConverter.ToUInt16(xorPortByteArray);
+            var xorEndpoint = new IPEndPoint(xorAddress, xorPort);
+            this.xorEndpoint = xorEndpoint;
+            this.endpoint = endpointXor(xorAddress.ToString(), xorPort);
+        }
+
+        private IPEndPoint endpointXor(string address, UInt16 port)
+        {
+            var addressByteArray = IPAddress.Parse(address).GetAddressBytes();
+            var portByteArray = BitConverter.GetBytes((UInt16)port);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
             }
-            return new IPEndPoint(new IPAddress(addressByteArray), BitConverter.ToUInt16(portByteArray));
+            var xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
+            var xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(xorPortByteArray);
+            }
+            return new IPEndPoint(new IPAddress(xorAddressByteArray), BitConverter.ToUInt16(xorPortByteArray));
         }
 
         public override byte[] ToBytes()
         {
             var typeByteArray = this.type.ToBytes();
             var xorAddressByteArray = this.xorEndpoint.Address.GetAddressBytes();
-            var xorPortByteArray = BitConverter.GetBytes((UInt16)this.xorEndpoint.Port);
+            var xorPortByteArray = BitConverter.GetBytes((Int16)this.xorEndpoint.Port);
 
             byte[] reserved = { 0x00 };
             byte[] addressFamilyByte = { 0x01 };
@@ -56,6 +66,7 @@ namespace Doturn.StunAttribute
             var lengthByteArray = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)
             {
+                Array.Reverse(xorPortByteArray);
                 Array.Reverse(lengthByteArray);
             }
             var res = new byte[2 + 2 + length];
