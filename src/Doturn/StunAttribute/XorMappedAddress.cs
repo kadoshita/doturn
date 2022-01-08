@@ -7,64 +7,83 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.XOR_MAPPED_ADDRESS;
         public readonly IPEndPoint endpoint;
-        public readonly IPEndPoint xorEndpoint;
+        public readonly IPEndPoint realEndpoint;
         public override Type Type => this.type;
-        public XorMappedAddress(IPAddress xorAddress, UInt16 xorPort)
+        /// <summary>
+        /// Create XorMappedAddress from IP Address and Port
+        /// </summary>
+        /// <param name="address">XOR address</param>
+        /// <param name="port">XOR port</param>
+        public XorMappedAddress(IPAddress address, UInt16 port)
         {
-            var _xorEndpoint = new IPEndPoint(xorAddress, xorPort);
-            this.xorEndpoint = _xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(_xorEndpoint);
+            this.endpoint = new IPEndPoint(address, port);
+            this.realEndpoint = this.endpointXor(address.ToString(), port);
         }
-        public XorMappedAddress(string xorAddress, UInt16 xorPort)
+        /// <summary>
+        /// Create XorMappedAddress from IP Address and Port
+        /// </summary>
+        /// <param name="address">XOR address</param>
+        /// <param name="port">XOR address</param>
+        public XorMappedAddress(string address, UInt16 port)
         {
-            var _xorEndpoint = new IPEndPoint(IPAddress.Parse(xorAddress), xorPort);
-            this.xorEndpoint = _xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(_xorEndpoint);
+            this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
+            this.realEndpoint = this.endpointXor(address, port);
         }
-        public XorMappedAddress(IPEndPoint xorEndpoint)
+        /// <summary>
+        /// Create XorMappedAddress from IP Address and Port
+        /// </summary>
+        /// <param name="endpoint">XOR IP endpoint</param>
+        public XorMappedAddress(IPEndPoint endpoint)
         {
-            this.xorEndpoint = xorEndpoint;
-            this.endpoint = this.xorEndpointToEndpoint(xorEndpoint);
+            this.endpoint = endpoint;
+            this.realEndpoint = this.endpointXor(endpoint.Address.ToString(), (UInt16)endpoint.Port);
         }
-        private IPEndPoint xorEndpointToEndpoint(IPEndPoint xorEndpoint)
+        public XorMappedAddress(byte[] addressByteArray, byte[] portByteArray)
         {
-            var xorAddressByteArray = xorEndpoint.Address.GetAddressBytes();
-            var xorPortByteArray = BitConverter.GetBytes((UInt16)xorEndpoint.Port);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(xorPortByteArray);
-            }
-            var addressByteArray = ByteArrayUtils.XorAddress(xorAddressByteArray);
-            var portByteArray = ByteArrayUtils.XorPort(xorPortByteArray);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
             }
-            return new IPEndPoint(new IPAddress(addressByteArray), BitConverter.ToUInt16(portByteArray));
+            var address = new IPAddress(addressByteArray);
+            var port = BitConverter.ToUInt16(portByteArray);
+            var endpoint = new IPEndPoint(address, port);
+            this.endpoint = endpoint;
+            this.realEndpoint = endpointXor(address.ToString(), port);
         }
-
-        public override byte[] ToBytes()
+        private IPEndPoint endpointXor(string address, UInt16 port)
         {
-            var typeByteArray = this.type.ToBytes();
-            var addressByteArray = this.xorEndpoint.Address.GetAddressBytes();
-            var portByteArray = BitConverter.GetBytes((Int16)this.xorEndpoint.Port);
+            var addressByteArray = IPAddress.Parse(address).GetAddressBytes();
+            var portByteArray = BitConverter.GetBytes((UInt16)port);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
             }
             var xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
             var xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(xorPortByteArray);
+            }
+            return new IPEndPoint(new IPAddress(xorAddressByteArray), BitConverter.ToUInt16(xorPortByteArray));
+        }
+
+        public override byte[] ToBytes()
+        {
+            var typeByteArray = this.type.ToBytes();
+            var addressByteArray = this.endpoint.Address.GetAddressBytes();
+            var portByteArray = BitConverter.GetBytes((Int16)this.endpoint.Port);
 
             byte[] reserved = { 0x00 };
             byte[] addressFamilyByte = { 0x01 };
-            var length = reserved.Length + addressFamilyByte.Length + xorPortByteArray.Length + xorAddressByteArray.Length;
+            var length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
             var lengthByteArray = BitConverter.GetBytes((Int16)length);
             if (BitConverter.IsLittleEndian)
             {
+                Array.Reverse(portByteArray);
                 Array.Reverse(lengthByteArray);
             }
             var res = new byte[2 + 2 + length];
-            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, xorPortByteArray, xorAddressByteArray);
+            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, portByteArray, addressByteArray);
             return res;
         }
         public static XorMappedAddress Parse(byte[] data)
@@ -73,13 +92,8 @@ namespace Doturn.StunAttribute
             var protocolFamilyByteArray = data[1..2];
             var portByteArray = data[2..4];
             var addressByteArray = data[4..data.Length];
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(portByteArray);
-            }
-            var port = BitConverter.ToUInt16(portByteArray);
-            var address = new IPAddress(addressByteArray);
-            return new XorMappedAddress(address, port);
+
+            return new XorMappedAddress(addressByteArray, portByteArray);
         }
     }
 }
