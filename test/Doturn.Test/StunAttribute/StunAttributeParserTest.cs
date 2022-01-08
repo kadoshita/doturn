@@ -1,5 +1,3 @@
-using System;
-using Doturn;
 using Xunit;
 
 namespace Doturn.StunAttribute.Test
@@ -16,9 +14,9 @@ namespace Doturn.StunAttribute.Test
         private readonly byte[] requestedTransportByteArray = new byte[] { 0x00, 0x19, 0x00, 0x04, 0x11, 0x00, 0x00, 0x00 };
         private readonly byte[] softwareByteArray = new byte[] { 0x80, 0x22, 0x00, 0x04, 0x4E, 0x6F, 0x6E, 0x65 };
         private readonly byte[] usernameByteArray = new byte[] { 0x00, 0x06, 0x00, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6E, 0x61, 0x6D, 0x65 };
-        private readonly byte[] xorMappedAddressByteArray = new byte[] { 0x00, 0x20, 0x00, 0x08, 0x00, 0x01, 0x62, 0xEA, 0x3D, 0xA4, 0x12, 0x20 };
-        private readonly byte[] xorPeerAddressByteArray = new byte[] { 0x00, 0x12, 0x00, 0x08, 0x00, 0x01, 0x62, 0xEA, 0x3D, 0xA4, 0x12, 0x20 };
-        private readonly byte[] xorRelayedAddressByteArray = new byte[] { 0x00, 0x16, 0x00, 0x08, 0x00, 0x01, 0x62, 0xEA, 0x3D, 0xA4, 0x12, 0x20 };
+        private readonly byte[] xorMappedAddressByteArray = new byte[] { 0x00, 0x20, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x5E, 0x12, 0xA4, 0x43 };
+        private readonly byte[] xorPeerAddressByteArray = new byte[] { 0x00, 0x12, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x5E, 0x12, 0xA4, 0x43 };
+        private readonly byte[] xorRelayedAddressByteArray = new byte[] { 0x00, 0x16, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x5E, 0x12, 0xA4, 0x43 };
 
         [Fact]
         public void Parse_ErrorCode_StunAttribute()
@@ -117,8 +115,10 @@ namespace Doturn.StunAttribute.Test
             var attributes = StunAttributeParser.Parse(this.xorMappedAddressByteArray);
             var attribute = (XorMappedAddress)attributes[0];
             Assert.Equal(Type.XOR_MAPPED_ADDRESS, attribute.Type);
-            Assert.Equal("61.164.18.32", attribute.endpoint.Address.ToString());
-            Assert.Equal(25322, attribute.endpoint.Port);
+            Assert.Equal("94.18.164.67", attribute.endpoint.Address.ToString());
+            Assert.Equal(28466, attribute.endpoint.Port);
+            Assert.Equal("127.0.0.1", attribute.realEndpoint.Address.ToString());
+            Assert.Equal(20000, attribute.realEndpoint.Port);
         }
 
         [Fact]
@@ -127,8 +127,10 @@ namespace Doturn.StunAttribute.Test
             var attributes = StunAttributeParser.Parse(this.xorPeerAddressByteArray);
             var attribute = (XorPeerAddress)attributes[0];
             Assert.Equal(Type.XOR_PEER_ADDRESS, attribute.Type);
-            Assert.Equal("61.164.18.32", attribute.endpoint.Address.ToString());
-            Assert.Equal(25322, attribute.endpoint.Port);
+            Assert.Equal("94.18.164.67", attribute.endpoint.Address.ToString());
+            Assert.Equal(28466, attribute.endpoint.Port);
+            Assert.Equal("127.0.0.1", attribute.realEndpoint.Address.ToString());
+            Assert.Equal(20000, attribute.realEndpoint.Port);
         }
 
         [Fact]
@@ -137,8 +139,10 @@ namespace Doturn.StunAttribute.Test
             var attributes = StunAttributeParser.Parse(this.xorRelayedAddressByteArray);
             var attribute = (XorRelayedAddress)attributes[0];
             Assert.Equal(Type.XOR_RELAYED_ADDRESS, attribute.Type);
-            Assert.Equal("61.164.18.32", attribute.endpoint.Address.ToString());
-            Assert.Equal(25322, attribute.endpoint.Port);
+            Assert.Equal("94.18.164.67", attribute.endpoint.Address.ToString());
+            Assert.Equal(28466, attribute.endpoint.Port);
+            Assert.Equal("127.0.0.1", attribute.realEndpoint.Address.ToString());
+            Assert.Equal(20000, attribute.realEndpoint.Port);
         }
 
     }
