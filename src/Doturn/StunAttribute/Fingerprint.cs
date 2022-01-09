@@ -13,7 +13,7 @@ namespace Doturn.StunAttribute
         {
             this.crc32 = crc32;
         }
-        public static Fingerprint CreateFingerprint(ref byte[] data)
+        public static Fingerprint CreateFingerprint(byte[] data)
         {
             var crc32 = Crc32Algorithm.Compute(data, 0, data.Length);
             var crc32Byte = BitConverter.GetBytes(crc32);
