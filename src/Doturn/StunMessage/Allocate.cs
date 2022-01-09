@@ -47,13 +47,13 @@ namespace Doturn.StunMessage
             var tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
             var responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpAllocateSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintlength];
             ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpAllocateSuccessResponseByteArray);
-            var messageIntegrity = new MessageIntegrity("username", "password", "example.com", responseByteArray);
+            var messageIntegrity = new MessageIntegrity("username", "password", "example.com", responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintlength))]);
             var messageIntegrityByteArray = messageIntegrity.ToBytes();
 
             var stunHeader = new StunHeader(StunMessage.Type.ALLOCATE_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
             var stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpAllocateSuccessResponseByteArray, messageIntegrityByteArray);
-            var fingerprint = Fingerprint.CreateFingerprint(ref responseByteArray);
+            var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
             var fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
@@ -63,8 +63,6 @@ namespace Doturn.StunMessage
             var fingerprintlength = 8;
 
             List<IStunAttribute> attributes = new List<IStunAttribute>();
-            //TODO external ip addressを設定から読み込む
-            var ipAddress = IPAddress.Parse("127.0.0.1");
             var nonce = new Nonce();
             attributes.Add(nonce);
             var realm = new Realm();
@@ -82,7 +80,7 @@ namespace Doturn.StunMessage
             var stunHeader = new StunHeader(StunMessage.Type.ALLOCATE_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
             var stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpAllocateSuccessResponseByteArray);
-            var fingerprint = Fingerprint.CreateFingerprint(ref responseByteArray);
+            var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
             var fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
