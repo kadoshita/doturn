@@ -5,6 +5,7 @@ namespace Doturn.StunMessage.Test
 {
     public class CreatePermissionTest
     {
+        private readonly byte[] magicCookie = new byte[] { 0x21, 0x12, 0xA4, 0x42 };
         private readonly byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         private readonly byte[] createPermissionRequestByteArray = new byte[] {
             0x00, 0x12, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x5E, 0x12, 0xA4, 0x43, // XorPeerAddress 127.0.0.1:20000
@@ -29,7 +30,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void Parse_And_Convert_To_ByteArray_createPermissionRequest()
         {
-            var createPermissionRequest = new CreatePermission(this.createPermissionRequestByteArray);
+            var createPermissionRequest = new CreatePermission(this.magicCookie, this.transactionId, this.createPermissionRequestByteArray);
             var convertedcreatePermissionRequestByteArray = createPermissionRequest.ToBytes();
             var xorPeerAddress = (StunAttribute.XorPeerAddress)createPermissionRequest.attributes[0];
             Assert.Equal(this.createPermissionRequestByteArray, convertedcreatePermissionRequestByteArray);
@@ -38,14 +39,16 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
-            var successResponseByteArray = CreatePermission.CreateSuccessResponse(this.transactionId);
+            var createPermissionRequest = new CreatePermission(this.magicCookie, this.transactionId, this.createPermissionRequestByteArray);
+            var successResponseByteArray = createPermissionRequest.CreateSuccessResponse();
             Assert.Equal(this.createPermissionSuccessResponseByteArray, successResponseByteArray);
         }
 
         [Fact]
         public void CreateErrorResponse()
         {
-            var errorResponseByteArray = CreatePermission.CreateErrorResponse(this.transactionId);
+            var createPermissionRequest = new CreatePermission(this.magicCookie, this.transactionId, this.createPermissionRequestByteArray);
+            var errorResponseByteArray = createPermissionRequest.CreateErrorResponse();
             Assert.Equal(this.createPermissionErrorResponseByteArray, errorResponseByteArray);
         }
     }

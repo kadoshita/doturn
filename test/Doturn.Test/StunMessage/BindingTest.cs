@@ -6,7 +6,7 @@ namespace Doturn.StunMessage.Test
 {
     public class BindingTest
     {
-        private readonly byte[] magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+        private readonly byte[] magicCookie = new byte[] { 0x21, 0x12, 0xA4, 0x42 };
         private readonly byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         private byte[] bindingRequestByteArray = new byte[0];
 
@@ -26,7 +26,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void Parse_And_Convert_To_ByteArray_BindingRequest()
         {
-            var bindingRequest = new Binding(this.bindingRequestByteArray);
+            var bindingRequest = new Binding(this.magicCookie, this.transactionId);
             var convertedBindingRequestByteArray = bindingRequest.ToBytes();
             Assert.Equal(this.bindingRequestByteArray, convertedBindingRequestByteArray);
         }
@@ -34,23 +34,26 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
+            var bindingRequest = new Binding(BitConverter.GetBytes((Int32)0), this.transactionId);
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, 20000);
-            var successResponseByteArray = Binding.CreateSuccessResponse(this.transactionId, BitConverter.GetBytes((Int32)0), endpoint);
+            var successResponseByteArray = bindingRequest.CreateSuccessResponse(endpoint);
             Assert.Equal(this.bindingSuccessResponseByteArray, successResponseByteArray);
         }
 
         [Fact]
         public void CreateXorSuccessResponse()
         {
+            var bindingRequest = new Binding(this.magicCookie, this.transactionId);
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, 20000);
-            var successResponseByteArray = Binding.CreateSuccessResponse(this.transactionId, this.magicCookie, endpoint);
+            var successResponseByteArray = bindingRequest.CreateSuccessResponse(endpoint);
             Assert.Equal(this.bindingXorSuccessResponseByteArray, successResponseByteArray);
         }
 
         [Fact]
         public void CreateErrorResponse()
         {
-            var errorResponseByteArray = Binding.CreateErrorResponse(this.transactionId);
+            var bindingRequest = new Binding(this.magicCookie, this.transactionId);
+            var errorResponseByteArray = bindingRequest.CreateErrorResponse();
             Assert.Equal(this.bindingErrorResponseByteArray, errorResponseByteArray);
         }
     }

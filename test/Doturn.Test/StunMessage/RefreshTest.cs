@@ -4,6 +4,7 @@ namespace Doturn.StunMessage.Test
 {
     public class RefreshTest
     {
+        private readonly byte[] magicCookie = new byte[] { 0x21, 0x12, 0xA4, 0x42 };
         private readonly byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         private readonly byte[] refreshRequestByteArray = new byte[] {
             0x00, 0x0D, 0x00, 0x04, 0x00, 0x00, 0x02, 0x58, // Lifetime
@@ -29,7 +30,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void Parse_And_Convert_To_ByteArray_RefreshRequest()
         {
-            var refreshRequest = new Refresh(this.refreshRequestByteArray);
+            var refreshRequest = new Refresh(this.magicCookie, this.transactionId, this.refreshRequestByteArray);
             var convertedRefreshRequestByteArray = refreshRequest.ToBytes();
             Assert.Equal(this.refreshRequestByteArray, convertedRefreshRequestByteArray);
         }
@@ -37,14 +38,16 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
-            var successResponseByteArray = Refresh.CreateSuccessResponse(this.transactionId);
+            var refreshRequest = new Refresh(this.magicCookie, this.transactionId, this.refreshRequestByteArray);
+            var successResponseByteArray = refreshRequest.CreateSuccessResponse();
             Assert.Equal(this.refreshSuccessResponseByteArray, successResponseByteArray);
         }
 
         [Fact]
         public void CreateErrorResponse()
         {
-            var errorResponseByteArray = Refresh.CreateErrorResponse(this.transactionId);
+            var refreshRequest = new Refresh(this.magicCookie, this.transactionId, this.refreshRequestByteArray);
+            var errorResponseByteArray = refreshRequest.CreateErrorResponse();
             Assert.Equal(this.refreshErrorResponseByteArray, errorResponseByteArray);
         }
     }

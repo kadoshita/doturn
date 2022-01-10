@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -9,21 +8,28 @@ namespace Doturn.StunMessage
     public class Allocate : StunMessageBase
     {
         public readonly Type type;
+        private readonly byte[] magicCookie;
+        public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
         public override Type Type => this.type;
 
-        public Allocate(byte[] data)
+        public Allocate(byte[] magicCookie, byte[] transactionId, byte[] data)
         {
+            this.type = Type.ALLOCATE;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = StunAttributeParser.Parse(data);
-            this.type = Type.ALLOCATE;
         }
-        public Allocate(List<IStunAttribute> attributes, bool isSuccess)
+        public Allocate(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess)
         {
-            this.attributes = attributes;
             this.type = isSuccess ? Type.ALLOCATE_SUCCESS : Type.ALLOCATE_ERROR;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
+            //TODO 必要なattributeが揃っているかチェックする
+            this.attributes = attributes;
         }
-        public static byte[] CreateSuccessResponse(byte[] transactionId, IPEndPoint endPoint)
+        public byte[] CreateSuccessResponse(IPEndPoint endPoint)
         {
             var messageIntegrityLength = 24;
             var fingerprintlength = 8;
@@ -40,7 +46,7 @@ namespace Doturn.StunMessage
             attributes.Add(lifetime);
             var software = new Software();
             attributes.Add(software);
-            var tmpAllocateSuccessResponse = new Allocate(attributes, true);
+            var tmpAllocateSuccessResponse = new Allocate(this.magicCookie, this.transactionId, attributes, true);
             var tmpAllocateSuccessResponseByteArray = tmpAllocateSuccessResponse.ToBytes();
 
             var tmpStunHeader = new StunHeader(StunMessage.Type.ALLOCATE_SUCCESS, (short)(tmpAllocateSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
@@ -58,7 +64,7 @@ namespace Doturn.StunMessage
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
         }
-        public static byte[] CreateErrorResponse(byte[] transactionId)
+        public byte[] CreateErrorResponse()
         {
             var fingerprintlength = 8;
 
@@ -69,7 +75,7 @@ namespace Doturn.StunMessage
             attributes.Add(realm);
             var software = new Software();
             attributes.Add(software);
-            var tmpAllocateSuccessResponse = new Allocate(attributes, true);
+            var tmpAllocateSuccessResponse = new Allocate(this.magicCookie, this.transactionId, attributes, true);
             var tmpAllocateSuccessResponseByteArray = tmpAllocateSuccessResponse.ToBytes();
 
             var tmpStunHeader = new StunHeader(StunMessage.Type.ALLOCATE_ERROR, (short)(tmpAllocateSuccessResponseByteArray.Length), transactionId);

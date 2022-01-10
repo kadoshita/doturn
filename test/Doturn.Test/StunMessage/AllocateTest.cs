@@ -5,6 +5,7 @@ namespace Doturn.StunMessage.Test
 {
     public class AllocateTest
     {
+        private readonly byte[] magicCookie = new byte[] { 0x21, 0x12, 0xA4, 0x42 };
         private readonly byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         private readonly byte[] allocateRequestHeaderByteArray = new byte[]{
             0x00, 0x03, 0x00, 0x58, 0x21, 0x12, 0xa4, 0x42, 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58
@@ -38,7 +39,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void Parse_And_Convert_To_ByteArray_AllocateRequest()
         {
-            var allocateRequest = new Allocate(this.allocateRequestByteArray);
+            var allocateRequest = new Allocate(this.magicCookie, this.transactionId, this.allocateRequestByteArray);
             var convertedAllocateRequestByteArray = allocateRequest.ToBytes();
 
             var requestedTransport = (StunAttribute.RequestedTransport)allocateRequest.attributes[0];
@@ -63,15 +64,17 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
+            var allocateRequest = new Allocate(this.magicCookie, this.transactionId, this.allocateRequestByteArray);
             IPEndPoint endpoint = new IPEndPoint(IPAddress.Loopback, 20000);
-            var successResponseByteArray = Allocate.CreateSuccessResponse(this.transactionId, endpoint);
+            var successResponseByteArray = allocateRequest.CreateSuccessResponse(endpoint);
             Assert.Equal(this.allocateSuccessResponseByteArray, successResponseByteArray);
         }
 
         [Fact]
         public void CreateErrorResponse()
         {
-            var errorResponseByteArray = Allocate.CreateErrorResponse(this.transactionId);
+            var allocateRequest = new Allocate(this.magicCookie, this.transactionId, this.allocateRequestByteArray);
+            var errorResponseByteArray = allocateRequest.CreateErrorResponse();
             Assert.Equal(this.allocateErrorResponseByteArray[0..24], errorResponseByteArray[0..24]); // exclude nonce
             Assert.Equal(this.allocateErrorResponseByteArray[40..76], errorResponseByteArray[40..76]); // exclude fingerprint
         }

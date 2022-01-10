@@ -8,26 +8,30 @@ namespace Doturn.StunMessage
     public class Binding : StunMessageBase
     {
         public readonly Type type;
+        private readonly byte[] magicCookie;
+        public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
         public override Type Type => this.type;
 
-        public Binding(byte[] data)
+        public Binding(byte[] magicCookie, byte[] transactionId)
         {
-            //TODO 必要なattributeが揃っているかチェックする
-            this.attributes = StunAttributeParser.Parse(data);
             this.type = Type.BINDING;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
         }
-        public Binding(List<IStunAttribute> attributes, bool isSuccess)
+        public Binding(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess)
         {
+            this.type = isSuccess ? Type.BINDING_SUCCESS : Type.BINDING_ERROR;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = attributes;
-            this.type = isSuccess ? Type.BINDING_SUCCESS : Type.BINDING_ERROR;
         }
-        public static byte[] CreateSuccessResponse(byte[] transactionId, byte[] magicCookie, IPEndPoint endPoint)
+        public byte[] CreateSuccessResponse(IPEndPoint endPoint)
         {
             List<IStunAttribute> attributes = new List<IStunAttribute>();
             StunHeader stunHeader;
-            var isXor = BitConverter.ToInt32(magicCookie) != 0;
+            var isXor = BitConverter.ToInt32(this.magicCookie) != 0;
             if (isXor)
             {
                 var attribute = new XorMappedAddress(endPoint);
@@ -38,7 +42,7 @@ namespace Doturn.StunMessage
                 var attribute = new MappedAddress(endPoint);
                 attributes.Add(attribute);
             }
-            var bindingSuccessResponse = new Binding(attributes, true);
+            var bindingSuccessResponse = new Binding(this.magicCookie, this.transactionId, attributes, true);
             var bindingSuccessResponseByteArray = bindingSuccessResponse.ToBytes();
             if (isXor)
             {
@@ -53,9 +57,9 @@ namespace Doturn.StunMessage
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, bindingSuccessResponseByteArray);
             return responseByteArray;
         }
-        public static byte[] CreateErrorResponse(byte[] transactionId)
+        public byte[] CreateErrorResponse()
         {
-            var bindingErrorResponse = new Binding(new List<IStunAttribute>(), false);
+            var bindingErrorResponse = new Binding(this.magicCookie, this.transactionId, new List<IStunAttribute>(), false);
             var bindingErrorResponseByteArray = bindingErrorResponse.ToBytes();
             var stunHeader = new StunHeader(StunMessage.Type.BINDING_ERROR, (short)bindingErrorResponseByteArray.Length, transactionId);
             var stunHeaderByteArray = stunHeader.ToBytes();

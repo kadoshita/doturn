@@ -7,22 +7,28 @@ namespace Doturn.StunMessage
     public class CreatePermission : StunMessageBase
     {
         public readonly Type type;
+        private readonly byte[] magicCookie;
+        public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
         public override Type Type => this.type;
 
-        public CreatePermission(byte[] data)
+        public CreatePermission(byte[] magicCookie, byte[] transactionId, byte[] data)
         {
+            this.type = Type.CREATE_PERMISSION;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = StunAttributeParser.Parse(data);
-            this.type = Type.CREATE_PERMISSION;
         }
-        public CreatePermission(List<IStunAttribute> attributes, bool isSuccess)
+        public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess)
         {
+            this.type = isSuccess ? Type.CREATE_PERMISSION_SUCCESS : Type.CREATE_PERMISSION_ERROR;
+            this.magicCookie = magicCookie;
+            this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = attributes;
-            this.type = isSuccess ? Type.CREATE_PERMISSION_SUCCESS : Type.CREATE_PERMISSION_ERROR;
         }
-        public static byte[] CreateSuccessResponse(byte[] transactionId)
+        public byte[] CreateSuccessResponse()
         {
             var messageIntegrityLength = 24;
             var fingerprintlength = 8;
@@ -30,7 +36,7 @@ namespace Doturn.StunMessage
             List<IStunAttribute> attributes = new List<IStunAttribute>();
             var software = new Software();
             attributes.Add(software);
-            var tmpCreatePermissionSuccessResponse = new CreatePermission(attributes, true);
+            var tmpCreatePermissionSuccessResponse = new CreatePermission(this.magicCookie, this.transactionId, attributes, true);
             var tmpCreatePermissionSuccessResponseByteArray = tmpCreatePermissionSuccessResponse.ToBytes();
 
 
@@ -49,14 +55,14 @@ namespace Doturn.StunMessage
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
         }
-        public static byte[] CreateErrorResponse(byte[] transactionId)
+        public byte[] CreateErrorResponse()
         {
             var fingerprintlength = 8;
 
             List<IStunAttribute> attributes = new List<IStunAttribute>();
             var software = new Software();
             attributes.Add(software);
-            var tmpCreatePermissionErrorResponse = new CreatePermission(attributes, false);
+            var tmpCreatePermissionErrorResponse = new CreatePermission(this.magicCookie, this.transactionId, attributes, false);
             var tmpCreatePermissionErrorResponseByteArray = tmpCreatePermissionErrorResponse.ToBytes();
 
             var tmpStunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_ERROR, (short)(tmpCreatePermissionErrorResponseByteArray.Length), transactionId);

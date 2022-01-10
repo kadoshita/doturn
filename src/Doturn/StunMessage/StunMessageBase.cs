@@ -1,6 +1,6 @@
 namespace Doturn.StunMessage
 {
-    interface IStunMessage
+    public interface IStunMessage
     {
         Type Type { get; }
         byte[] ToBytes();
