@@ -31,7 +31,7 @@ namespace Doturn.StunMessage
         public byte[] CreateSuccessResponse()
         {
             var messageIntegrityLength = 24;
-            var fingerprintlength = 8;
+            var fingerprintLength = 8;
 
             List<IStunAttribute> attributes = new List<IStunAttribute>();
             var software = new Software();
@@ -42,15 +42,15 @@ namespace Doturn.StunMessage
 
             var tmpStunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_SUCCESS, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
             var tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
-            var responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintlength];
+            var responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintLength];
             ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray);
-            var messageIntegrity = new MessageIntegrity("username", "password", "example.com", responseByteArray);
+            var messageIntegrity = new MessageIntegrity("username", "password", "example.com", responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintLength))]);
             var messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-            var stunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+            var stunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintLength), transactionId);
             var stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray, messageIntegrityByteArray);
-            var fingerprint = Fingerprint.CreateFingerprint(responseByteArray);
+            var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
             var fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
@@ -73,7 +73,7 @@ namespace Doturn.StunMessage
             var stunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
             var stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
-            var fingerprint = Fingerprint.CreateFingerprint(responseByteArray);
+            var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
             var fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;

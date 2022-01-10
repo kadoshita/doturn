@@ -21,7 +21,7 @@ namespace Doturn.StunAttribute
             var typeByteArray = this.type.ToBytes();
             var softwareByteArray = System.Text.Encoding.ASCII.GetBytes(this.software);
             var length = softwareByteArray.Length;
-            var paddingLength = 8 - ((2 + 2 + length) % 8);
+            var paddingLength = 8 - (length % 8);
             if (paddingLength >= 8)
             {
                 paddingLength = 0;
