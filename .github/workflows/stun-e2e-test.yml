@@ -1,0 +1,16 @@
+name: STUN E2E Test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Start Server
+        run: docker-compose -f docker-compose.test.yml up -d
+      - name: Test
+        run: docker-compose -f docker-compose.test.yml exec coturn turnutils_stunclient doturn
+      - name: Terminate Server
+        run: docker-compose -f docker-compose.test.yml down
