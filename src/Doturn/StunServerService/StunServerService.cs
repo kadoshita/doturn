@@ -31,39 +31,38 @@ namespace Doturn.StunServerService
             {
                 _logger.LogDebug("Wait...");
                 var data = await client.ReceiveAsync();
-                _logger.LogDebug($"req: {BitConverter.ToString(data.Buffer)}");
                 try
                 {
                     var message = StunMessage.StunMessageParser.Parse(data.Buffer);
-                    _logger.LogDebug($"req: {message.Type}");
+                    _logger.LogDebug($"req: {message.Type} {BitConverter.ToString(data.Buffer)}");
                     if (message.Type == StunMessage.Type.BINDING)
                     {
                         var res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
-                        _logger.LogDebug($"res: {BitConverter.ToString(res)}");
+                        _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
                         await client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.ALLOCATE)
                     {
                         var res = ((StunMessage.Allocate)message).CreateSuccessResponse(data.RemoteEndPoint);
-                        _logger.LogDebug($"res: {BitConverter.ToString(res)}");
+                        _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
                         await client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.BINDING)
                     {
                         var res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
-                        _logger.LogDebug($"res: {BitConverter.ToString(res)}");
+                        _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
                         await client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.CREATE_PERMISSION)
                     {
                         var res = ((StunMessage.CreatePermission)message).CreateSuccessResponse();
-                        _logger.LogDebug($"res: {BitConverter.ToString(res)}");
+                        _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
                         await client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.REFRESH)
                     {
                         var res = ((StunMessage.Refresh)message).CreateSuccessResponse();
-                        _logger.LogDebug($"res: {BitConverter.ToString(res)}");
+                        _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
                         await client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                 }
