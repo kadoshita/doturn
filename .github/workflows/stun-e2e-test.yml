@@ -2,6 +2,9 @@ name: STUN E2E Test
 
 on:
   push:
+    paths:
+      - '**.cs'
+      - '**.yml'
 
 jobs:
   test:

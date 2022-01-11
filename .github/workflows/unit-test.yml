@@ -2,6 +2,9 @@ name: Unit Test
 
 on:
   push:
+    paths:
+      - '**.cs'
+      - '**.yml'
 
 jobs:
   ci:
