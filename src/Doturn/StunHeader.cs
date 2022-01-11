@@ -1,6 +1,5 @@
-using Doturn.StunMessage;
-
 using System;
+using Doturn.StunMessage;
 
 namespace Doturn
 {
