@@ -10,7 +10,7 @@ namespace Doturn.StunAttribute.Test
         [InlineData(StunAttribute.Transport.TCP, "06")]
         public void Transport_Convert_To_ByteArray(StunAttribute.Transport transport, string byteArrayString)
         {
-            var byteArray = transport.ToBytes();
+            byte[] byteArray = transport.ToBytes();
             Assert.Single(byteArray);
             Assert.Equal(byteArrayString, BitConverter.ToString(byteArray));
         }

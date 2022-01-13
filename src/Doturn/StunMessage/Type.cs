@@ -21,7 +21,7 @@ namespace Doturn.StunMessage
     {
         public static byte[] ToBytes(this Type stunMessageType)
         {
-            var arr = BitConverter.GetBytes((Int16)stunMessageType);
+            byte[] arr = BitConverter.GetBytes((short)stunMessageType);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(arr);

@@ -6,11 +6,11 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.LIFETIME;
         public readonly int lifetime;
-        public override Type Type => this.type;
+        public override Type Type => type;
 
         public Lifetime()
         {
-            this.lifetime = 600;
+            lifetime = 600;
         }
         public Lifetime(int lifetime)
         {
@@ -18,16 +18,16 @@ namespace Doturn.StunAttribute
         }
         public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            var lifetimeByteArray = BitConverter.GetBytes(this.lifetime);
-            var length = lifetimeByteArray.Length;
-            var lengthByteArray = BitConverter.GetBytes((Int16)length);
+            byte[] typeByteArray = type.ToBytes();
+            byte[] lifetimeByteArray = BitConverter.GetBytes(lifetime);
+            int length = lifetimeByteArray.Length;
+            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(lifetimeByteArray);
                 Array.Reverse(lengthByteArray);
             }
-            var res = new byte[2 + 2 + length];
+            byte[] res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, lifetimeByteArray);
             return res;
         }
@@ -38,7 +38,7 @@ namespace Doturn.StunAttribute
             {
                 Array.Reverse(data);
             }
-            var lifetimeNum = BitConverter.ToUInt16(data);
+            ushort lifetimeNum = BitConverter.ToUInt16(data);
             return new Lifetime(lifetimeNum);
         }
     }

@@ -12,8 +12,8 @@ namespace Doturn.StunAttribute.Test
         public void MappedAddress_Convert_To_ByteArray(string address, int port, string expect)
         {
             var mappedAddress = new MappedAddress(address, port);
-            var byteArray = mappedAddress.ToBytes();
-            var byteArrayString = BitConverter.ToString(byteArray);
+            byte[] byteArray = mappedAddress.ToBytes();
+            string byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
     }

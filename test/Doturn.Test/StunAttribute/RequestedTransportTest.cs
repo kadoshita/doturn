@@ -11,8 +11,8 @@ namespace Doturn.StunAttribute.Test
         public void RequestedTransport_Convert_To_ByteArray(Transport transport, string expect)
         {
             var requestedTransport = new RequestedTransport(transport, new byte[] { 0x00, 0x00, 0x00 });
-            var byteArray = requestedTransport.ToBytes();
-            var byteArrayString = BitConverter.ToString(byteArray);
+            byte[] byteArray = requestedTransport.ToBytes();
+            string byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
     }

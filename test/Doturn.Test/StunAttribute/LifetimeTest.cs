@@ -12,8 +12,8 @@ namespace Doturn.StunAttribute.Test
         public void Lifetime_Convert_To_ByteArray(int lifetime, string expect)
         {
             var lifetimeObj = new Lifetime(lifetime);
-            var byteArray = lifetimeObj.ToBytes();
-            var byteArrayString = BitConverter.ToString(byteArray);
+            byte[] byteArray = lifetimeObj.ToBytes();
+            string byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
     }

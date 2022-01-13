@@ -11,8 +11,8 @@ namespace Doturn.StunAttribute.Test
         public void MessageIntegrity_Convert_To_ByteArray(byte[] data, string expect)
         {
             var messageIntegrity = new MessageIntegrity("username", "password", "example.com", data);
-            var byteArray = messageIntegrity.ToBytes();
-            var byteArrayString = BitConverter.ToString(byteArray);
+            byte[] byteArray = messageIntegrity.ToBytes();
+            string byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal(expect, byteArrayString);
         }
 
@@ -21,8 +21,8 @@ namespace Doturn.StunAttribute.Test
         {
             byte[] data = { 0x62, 0x96, 0xE4, 0x0C, 0x8F, 0x6F, 0xCD, 0x5F, 0x1C, 0x6E, 0xBC, 0x7E, 0xA0, 0x55, 0xC7, 0x85, 0xB5, 0xCF, 0xC4, 0x20 };
             var messageIntegrity = new MessageIntegrity(data);
-            var byteArray = messageIntegrity.ToBytes();
-            var byteArrayString = BitConverter.ToString(byteArray);
+            byte[] byteArray = messageIntegrity.ToBytes();
+            string byteArrayString = BitConverter.ToString(byteArray);
             Assert.Equal("00-08-00-14-62-96-E4-0C-8F-6F-CD-5F-1C-6E-BC-7E-A0-55-C7-85-B5-CF-C4-20", byteArrayString);
         }
     }

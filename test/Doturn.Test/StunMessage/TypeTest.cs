@@ -20,7 +20,7 @@ namespace Doturn.StunMessage.Test
         [InlineData(StunMessage.Type.CREATE_PERMISSION_ERROR, "01-18")]
         public void StunMessageType_Convert_To_ByteArray(StunMessage.Type type, string byteArrayString)
         {
-            var byteArray = type.ToBytes();
+            byte[] byteArray = type.ToBytes();
             Assert.Equal(2, byteArray.Length);
             Assert.Equal(byteArrayString, BitConverter.ToString(byteArray));
         }

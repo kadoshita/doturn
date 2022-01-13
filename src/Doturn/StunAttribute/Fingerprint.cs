@@ -6,23 +6,23 @@ namespace Doturn.StunAttribute
     public class Fingerprint : StunAttributeBase
     {
         public readonly Type type = Type.FINGERPRINT;
-        private readonly byte[] crc32;
-        public override Type Type => this.type;
+        private readonly byte[] _crc32;
+        public override Type Type => type;
 
         public Fingerprint(byte[] crc32)
         {
-            this.crc32 = crc32;
+            _crc32 = crc32;
         }
         public static Fingerprint CreateFingerprint(byte[] data)
         {
-            var crc32 = Crc32Algorithm.Compute(data, 0, data.Length);
-            var crc32Byte = BitConverter.GetBytes(crc32);
+            uint crc32 = Crc32Algorithm.Compute(data, 0, data.Length);
+            byte[] crc32Byte = BitConverter.GetBytes(crc32);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(crc32Byte);
             }
-            var crc32XorByte = new byte[crc32Byte.Length];
-            var fingerprintXor = BitConverter.GetBytes(0x5354554e);
+            byte[] crc32XorByte = new byte[crc32Byte.Length];
+            byte[] fingerprintXor = BitConverter.GetBytes(0x5354554e);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(fingerprintXor);
@@ -35,16 +35,16 @@ namespace Doturn.StunAttribute
         }
         public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            var length = this.crc32.Length;
-            var lengthByteArray = BitConverter.GetBytes((Int16)length);
+            byte[] typeByteArray = type.ToBytes();
+            int length = _crc32.Length;
+            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(lengthByteArray);
             }
 
-            var res = new byte[2 + 2 + length];
-            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, this.crc32);
+            byte[] res = new byte[2 + 2 + length];
+            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, _crc32);
             return res;
         }
 

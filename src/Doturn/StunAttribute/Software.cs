@@ -6,10 +6,10 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.SOFTWARE;
         public readonly string software;
-        public override Type Type => this.type;
+        public override Type Type => type;
         public Software()
         {
-            this.software = "Doturn";
+            software = "Doturn";
         }
         public Software(string software)
         {
@@ -18,23 +18,23 @@ namespace Doturn.StunAttribute
 
         public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            var softwareByteArray = System.Text.Encoding.ASCII.GetBytes(this.software);
-            var length = softwareByteArray.Length;
-            var paddingLength = 8 - (length % 8);
+            byte[] typeByteArray = type.ToBytes();
+            byte[] softwareByteArray = System.Text.Encoding.ASCII.GetBytes(software);
+            int length = softwareByteArray.Length;
+            int paddingLength = 8 - (length % 8);
             if (paddingLength >= 8)
             {
                 paddingLength = 0;
             }
-            var lengthByteArray = BitConverter.GetBytes((Int16)length);
+            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(lengthByteArray);
             }
-            var res = new byte[2 + 2 + length + paddingLength];
+            byte[] res = new byte[2 + 2 + length + paddingLength];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, softwareByteArray);
             byte[] padding = { 0 };
-            for (var i = 0; i < paddingLength; i++)
+            for (int i = 0; i < paddingLength; i++)
             {
                 ByteArrayUtils.MergeByteArray(ref res, res.Length - paddingLength, padding);
             }
@@ -42,7 +42,7 @@ namespace Doturn.StunAttribute
         }
         public static Software Parse(byte[] data)
         {
-            var softwareStr = System.Text.Encoding.ASCII.GetString(data);
+            string softwareStr = System.Text.Encoding.ASCII.GetString(data);
             return new Software(softwareStr);
         }
     }

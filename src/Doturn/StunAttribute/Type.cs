@@ -23,7 +23,7 @@ namespace Doturn.StunAttribute
     {
         public static byte[] ToBytes(this Type stunAttributeType)
         {
-            var arr = BitConverter.GetBytes((Int16)stunAttributeType);
+            byte[] arr = BitConverter.GetBytes((short)stunAttributeType);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(arr);

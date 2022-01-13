@@ -13,8 +13,8 @@ namespace Doturn.StunServerService
     {
         private readonly ILogger<StunServerService> _logger;
         private readonly IOptions<AppSettings> _options;
-        public readonly UInt16 listenPort;
-        private UdpClient client;
+        public readonly ushort listenPort;
+        private readonly UdpClient _client;
 
         public StunServerService(ILogger<StunServerService> logger, IOptions<AppSettings> options)
         {
@@ -22,7 +22,7 @@ namespace Doturn.StunServerService
             _options = options;
             listenPort = options.Value.ListeningPort;
             var endpoint = new IPEndPoint(IPAddress.Any, listenPort);
-            client = new UdpClient(endpoint);
+            _client = new UdpClient(endpoint);
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -30,40 +30,40 @@ namespace Doturn.StunServerService
             while (true)
             {
                 _logger.LogDebug("Wait...");
-                var data = await client.ReceiveAsync();
+                UdpReceiveResult data = await _client.ReceiveAsync();
                 try
                 {
-                    var message = StunMessage.StunMessageParser.Parse(data.Buffer);
+                    StunMessage.IStunMessage message = StunMessage.StunMessageParser.Parse(data.Buffer);
                     _logger.LogDebug($"req: {message.Type} {BitConverter.ToString(data.Buffer)}");
                     if (message.Type == StunMessage.Type.BINDING)
                     {
-                        var res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
+                        byte[] res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
                         _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
-                        await client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.ALLOCATE)
                     {
-                        var res = ((StunMessage.Allocate)message).CreateSuccessResponse(data.RemoteEndPoint);
+                        byte[] res = ((StunMessage.Allocate)message).CreateSuccessResponse(data.RemoteEndPoint);
                         _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
-                        await client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.BINDING)
                     {
-                        var res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
+                        byte[] res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
                         _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
-                        await client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.CREATE_PERMISSION)
                     {
-                        var res = ((StunMessage.CreatePermission)message).CreateSuccessResponse();
+                        byte[] res = ((StunMessage.CreatePermission)message).CreateSuccessResponse();
                         _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
-                        await client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                     else if (message.Type == StunMessage.Type.REFRESH)
                     {
-                        var res = ((StunMessage.Refresh)message).CreateSuccessResponse();
+                        byte[] res = ((StunMessage.Refresh)message).CreateSuccessResponse();
                         _logger.LogDebug($"res: {message.Type} {BitConverter.ToString(res)}");
-                        await client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                 }
                 catch (StunMessage.StunMessageParseException)

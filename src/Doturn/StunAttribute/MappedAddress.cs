@@ -7,15 +7,15 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.MAPPED_ADDRESS;
         public readonly IPEndPoint endpoint;
-        public override Type Type => this.type;
+        public override Type Type => type;
 
-        public MappedAddress(IPAddress address, Int32 port)
+        public MappedAddress(IPAddress address, int port)
         {
-            this.endpoint = new IPEndPoint(address, port);
+            endpoint = new IPEndPoint(address, port);
         }
-        public MappedAddress(string address, Int32 port)
+        public MappedAddress(string address, int port)
         {
-            this.endpoint = new IPEndPoint(IPAddress.Parse(address), port);
+            endpoint = new IPEndPoint(IPAddress.Parse(address), port);
         }
         public MappedAddress(IPEndPoint endpoint)
         {
@@ -24,34 +24,34 @@ namespace Doturn.StunAttribute
 
         public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            byte[] addressByteArray = this.endpoint.Address.GetAddressBytes();
-            byte[] portByteArray = BitConverter.GetBytes((Int16)this.endpoint.Port);
+            byte[] typeByteArray = type.ToBytes();
+            byte[] addressByteArray = endpoint.Address.GetAddressBytes();
+            byte[] portByteArray = BitConverter.GetBytes((short)endpoint.Port);
             byte[] reserved = { 0x00 };
             byte[] addressFamilyByte = { 0x01 };
-            var length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
-            var lengthByteArray = BitConverter.GetBytes((Int16)length);
+            int length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
+            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
                 Array.Reverse(lengthByteArray);
             }
-            var res = new byte[2 + 2 + length];
+            byte[] res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, portByteArray, addressByteArray);
             return res;
         }
 
         public static IStunAttribute Parse(byte[] data)
         {
-            var reservedByteArray = data[0..1];
-            var protocolFamilyByteArray = data[1..2];
-            var portByteArray = data[2..4];
-            var addressByteArray = data[4..data.Length];
+            _ = data[0..1];
+            _ = data[1..2];
+            byte[] portByteArray = data[2..4];
+            byte[] addressByteArray = data[4..data.Length];
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
             }
-            var port = (Int32)BitConverter.ToInt16(portByteArray);
+            int port = (int)BitConverter.ToInt16(portByteArray);
             var address = new IPAddress(addressByteArray);
             return new MappedAddress(address, port);
         }

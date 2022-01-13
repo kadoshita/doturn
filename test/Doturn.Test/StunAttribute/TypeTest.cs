@@ -22,7 +22,7 @@ namespace Doturn.StunAttribute.Test
         [InlineData(StunAttribute.Type.FINGERPRINT, "80-28")]
         public void StunAttributeType_Convert_To_ByteArray(StunAttribute.Type type, string byteArrayString)
         {
-            var byteArray = type.ToBytes();
+            byte[] byteArray = type.ToBytes();
             Assert.Equal(2, byteArray.Length);
             Assert.Equal(byteArrayString, BitConverter.ToString(byteArray));
         }

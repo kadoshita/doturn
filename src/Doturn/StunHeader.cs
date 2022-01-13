@@ -6,22 +6,22 @@ namespace Doturn
     public class StunHeader
     {
         public readonly StunMessage.Type type;
-        public readonly Int16 messageLength;
+        public readonly short messageLength;
         public readonly byte[] magicCookie;
         public readonly byte[] transactionId;
-        public StunHeader(StunMessage.Type type, Int16 messageLength, byte[] transactionId)
+        public StunHeader(StunMessage.Type type, short messageLength, byte[] transactionId)
         {
             this.type = type;
             this.messageLength = messageLength;
             this.transactionId = transactionId;
-            var _magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+            byte[] _magicCookie = BitConverter.GetBytes((int)0x2112a442);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(_magicCookie);
             }
-            this.magicCookie = _magicCookie;
+            magicCookie = _magicCookie;
         }
-        public StunHeader(StunMessage.Type type, Int16 messageLength, byte[] magicCookie, byte[] transactionId)
+        public StunHeader(StunMessage.Type type, short messageLength, byte[] magicCookie, byte[] transactionId)
         {
             this.type = type;
             this.messageLength = messageLength;
@@ -30,32 +30,32 @@ namespace Doturn
         }
         public StunHeader(byte[] data)
         {
-            var messageTypeByteArray = data[0..2];
-            var messageLengthByteArray = data[2..4];
-            this.magicCookie = data[4..8];
-            this.transactionId = data[8..20];
-            var _magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+            byte[] messageTypeByteArray = data[0..2];
+            byte[] messageLengthByteArray = data[2..4];
+            magicCookie = data[4..8];
+            transactionId = data[8..20];
+            byte[] _magicCookie = BitConverter.GetBytes((int)0x2112a442);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(_magicCookie);
                 Array.Reverse(messageTypeByteArray);
                 Array.Reverse(messageLengthByteArray);
             }
-            this.magicCookie = _magicCookie;
-            this.type = (StunMessage.Type)Enum.ToObject(typeof(StunMessage.Type), BitConverter.ToInt16(messageTypeByteArray));
-            this.messageLength = BitConverter.ToInt16(messageLengthByteArray);
+            magicCookie = _magicCookie;
+            type = (StunMessage.Type)Enum.ToObject(typeof(StunMessage.Type), BitConverter.ToInt16(messageTypeByteArray));
+            messageLength = BitConverter.ToInt16(messageLengthByteArray);
         }
 
         public byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            var messageLengthByteArray = BitConverter.GetBytes(this.messageLength);
+            byte[] typeByteArray = type.ToBytes();
+            byte[] messageLengthByteArray = BitConverter.GetBytes(messageLength);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(messageLengthByteArray);
             }
-            var res = new byte[20];
-            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, messageLengthByteArray, this.magicCookie, this.transactionId);
+            byte[] res = new byte[20];
+            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, messageLengthByteArray, magicCookie, transactionId);
             return res;
         }
     }
