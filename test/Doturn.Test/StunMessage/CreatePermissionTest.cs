@@ -26,10 +26,21 @@ namespace Doturn.StunMessage.Test
             0x80, 0x28, 0x00, 0x04, 0x2E, 0x34, 0x9F, 0xFD // Fingerprint
         };
 
+        private readonly AppSettings _appSettings = new()
+        {
+            Username = "username",
+            Password = "password",
+            Realm = "example.com",
+            ExternalIPAddress = "127.0.0.1",
+            ListeningPort = 3478,
+            MinPort = 49152,
+            MaxPort = 65535
+        };
+
         [Fact]
         public void Parse_And_Convert_To_ByteArray_createPermissionRequest()
         {
-            var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray);
+            var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray, _appSettings);
             byte[] convertedcreatePermissionRequestByteArray = createPermissionRequest.ToBytes();
             _ = (StunAttribute.XorPeerAddress)createPermissionRequest.attributes[0];
             Assert.Equal(_createPermissionRequestByteArray, convertedcreatePermissionRequestByteArray);
@@ -38,7 +49,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
-            var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray);
+            var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray, _appSettings);
             byte[] successResponseByteArray = createPermissionRequest.CreateSuccessResponse();
             Assert.Equal(_createPermissionSuccessResponseByteArray, successResponseByteArray);
         }
@@ -46,7 +57,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateErrorResponse()
         {
-            var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray);
+            var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray, _appSettings);
             byte[] errorResponseByteArray = createPermissionRequest.CreateErrorResponse();
             Assert.Equal(_createPermissionErrorResponseByteArray, errorResponseByteArray);
         }

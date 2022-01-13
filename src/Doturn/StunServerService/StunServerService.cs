@@ -33,7 +33,7 @@ namespace Doturn.StunServerService
                 UdpReceiveResult data = await _client.ReceiveAsync();
                 try
                 {
-                    StunMessage.IStunMessage message = StunMessage.StunMessageParser.Parse(data.Buffer);
+                    StunMessage.IStunMessage message = StunMessage.StunMessageParser.Parse(data.Buffer, _options.Value);
                     _logger.LogDebug($"req: {message.Type} {BitConverter.ToString(data.Buffer)}");
                     if (message.Type == StunMessage.Type.BINDING)
                     {

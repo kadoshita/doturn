@@ -11,21 +11,24 @@ namespace Doturn.StunMessage
         private readonly byte[] _magicCookie;
         public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new();
+        private AppSettings _appSettings;
         public override Type Type => type;
 
-        public Binding(byte[] magicCookie, byte[] transactionId)
+        public Binding(byte[] magicCookie, byte[] transactionId, AppSettings appSettings)
         {
             type = Type.BINDING;
             _magicCookie = magicCookie;
             this.transactionId = transactionId;
+            _appSettings = appSettings;
         }
-        public Binding(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess)
+        public Binding(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, AppSettings appSettings)
         {
             type = isSuccess ? Type.BINDING_SUCCESS : Type.BINDING_ERROR;
             _magicCookie = magicCookie;
             this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = attributes;
+            _appSettings = appSettings;
         }
         public byte[] CreateSuccessResponse(IPEndPoint endPoint)
         {
@@ -42,7 +45,7 @@ namespace Doturn.StunMessage
                 var attribute = new MappedAddress(endPoint);
                 attributes.Add(attribute);
             }
-            var bindingSuccessResponse = new Binding(_magicCookie, transactionId, attributes, true);
+            var bindingSuccessResponse = new Binding(_magicCookie, transactionId, attributes, true, _appSettings);
             byte[] bindingSuccessResponseByteArray = bindingSuccessResponse.ToBytes();
             if (isXor)
             {
@@ -59,7 +62,7 @@ namespace Doturn.StunMessage
         }
         public byte[] CreateErrorResponse()
         {
-            var bindingErrorResponse = new Binding(_magicCookie, transactionId, new List<IStunAttribute>(), false);
+            var bindingErrorResponse = new Binding(_magicCookie, transactionId, new List<IStunAttribute>(), false, _appSettings);
             byte[] bindingErrorResponseByteArray = bindingErrorResponse.ToBytes();
             var stunHeader = new StunHeader(Type.BINDING_ERROR, (short)bindingErrorResponseByteArray.Length, transactionId);
             byte[] stunHeaderByteArray = stunHeader.ToBytes();

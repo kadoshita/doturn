@@ -32,38 +32,49 @@ namespace Doturn.StunMessage.Test
             0xFF, 0xFF, 0x00, 0x00, 0x21, 0x12, 0xa4, 0x42, 0x54, 0x45, 0x53, 0x54, 0x54, 0x45, 0x53, 0x54, 0x54, 0x45, 0x53, 0x54 // header
         };
 
+        private readonly AppSettings _appSettings = new()
+        {
+            Username = "username",
+            Password = "password",
+            Realm = "example.com",
+            ExternalIPAddress = "127.0.0.1",
+            ListeningPort = 3478,
+            MinPort = 49152,
+            MaxPort = 65535
+        };
+
         [Fact]
         public void Parse_Binding_Request()
         {
-            var result = (Binding)StunMessageParser.Parse(_bindingRequestBytes);
+            var result = (Binding)StunMessageParser.Parse(_bindingRequestBytes, _appSettings);
             Assert.Equal(Type.BINDING, result.Type);
         }
 
         [Fact]
         public void Parse_Allocate_Request()
         {
-            var result = (Allocate)StunMessageParser.Parse(_allocateRequestBytes);
+            var result = (Allocate)StunMessageParser.Parse(_allocateRequestBytes, _appSettings);
             Assert.Equal(Type.ALLOCATE, result.Type);
         }
 
         [Fact]
         public void Parse_CreatePermission_Request()
         {
-            var result = (CreatePermission)StunMessageParser.Parse(_createPermissionRequestBytes);
+            var result = (CreatePermission)StunMessageParser.Parse(_createPermissionRequestBytes, _appSettings);
             Assert.Equal(Type.CREATE_PERMISSION, result.Type);
         }
 
         [Fact]
         public void Parse_Refresh_Request()
         {
-            var result = (Refresh)StunMessageParser.Parse(_refreshRequestBytes);
+            var result = (Refresh)StunMessageParser.Parse(_refreshRequestBytes, _appSettings);
             Assert.Equal(Type.REFRESH, result.Type);
         }
 
         [Fact]
         public void Throw_Exception_If_Unknown_Request()
         {
-            Assert.Throws<StunMessageParseException>(() => StunMessageParser.Parse(_unknownRequestBytes));
+            Assert.Throws<StunMessageParseException>(() => StunMessageParser.Parse(_unknownRequestBytes, _appSettings));
         }
     }
 }

@@ -10,23 +10,26 @@ namespace Doturn.StunMessage
         private readonly byte[] _magicCookie;
         public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new();
+        private AppSettings _appSettings;
         public override Type Type => type;
 
-        public CreatePermission(byte[] magicCookie, byte[] transactionId, byte[] data)
+        public CreatePermission(byte[] magicCookie, byte[] transactionId, byte[] data, AppSettings appSettings)
         {
             type = Type.CREATE_PERMISSION;
             _magicCookie = magicCookie;
             this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             attributes = StunAttributeParser.Parse(data);
+            _appSettings = appSettings;
         }
-        public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess)
+        public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, AppSettings appSettings)
         {
             type = isSuccess ? Type.CREATE_PERMISSION_SUCCESS : Type.CREATE_PERMISSION_ERROR;
             _magicCookie = magicCookie;
             this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = attributes;
+            _appSettings = appSettings;
         }
         public byte[] CreateSuccessResponse()
         {
@@ -36,18 +39,18 @@ namespace Doturn.StunMessage
             List<IStunAttribute> attributes = new();
             var software = new Software();
             attributes.Add(software);
-            var tmpCreatePermissionSuccessResponse = new CreatePermission(_magicCookie, transactionId, attributes, true);
+            var tmpCreatePermissionSuccessResponse = new CreatePermission(_magicCookie, transactionId, attributes, true, _appSettings);
             byte[] tmpCreatePermissionSuccessResponseByteArray = tmpCreatePermissionSuccessResponse.ToBytes();
 
 
-            var tmpStunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_SUCCESS, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
+            var tmpStunHeader = new StunHeader(Type.CREATE_PERMISSION_SUCCESS, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
             byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
             byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintLength];
             ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray);
-            var messageIntegrity = new MessageIntegrity("username", "password", "example.com", responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintLength))]);
+            var messageIntegrity = new MessageIntegrity(_appSettings.Username, _appSettings.Password, _appSettings.Realm, responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintLength))]);
             byte[] messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-            var stunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintLength), transactionId);
+            var stunHeader = new StunHeader(Type.CREATE_PERMISSION_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintLength), transactionId);
             byte[] stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray, messageIntegrityByteArray);
             var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
@@ -62,15 +65,15 @@ namespace Doturn.StunMessage
             List<IStunAttribute> attributes = new();
             var software = new Software();
             attributes.Add(software);
-            var tmpCreatePermissionErrorResponse = new CreatePermission(_magicCookie, transactionId, attributes, false);
+            var tmpCreatePermissionErrorResponse = new CreatePermission(_magicCookie, transactionId, attributes, false, _appSettings);
             byte[] tmpCreatePermissionErrorResponseByteArray = tmpCreatePermissionErrorResponse.ToBytes();
 
-            var tmpStunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_ERROR, (short)(tmpCreatePermissionErrorResponseByteArray.Length), transactionId);
+            var tmpStunHeader = new StunHeader(Type.CREATE_PERMISSION_ERROR, (short)tmpCreatePermissionErrorResponseByteArray.Length, transactionId);
             byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
             byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionErrorResponseByteArray.Length + fingerprintlength];
             ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
 
-            var stunHeader = new StunHeader(StunMessage.Type.CREATE_PERMISSION_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+            var stunHeader = new StunHeader(Type.CREATE_PERMISSION_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
             byte[] stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
             var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);

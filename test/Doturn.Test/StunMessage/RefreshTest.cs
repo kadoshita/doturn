@@ -27,10 +27,20 @@ namespace Doturn.StunMessage.Test
             0x80, 0x28, 0x00, 0x04, 0x62, 0x94, 0x7A, 0x31 // Fingerprint
         };
 
+        private readonly AppSettings _appSettings = new()
+        {
+            Username = "username",
+            Password = "password",
+            Realm = "example.com",
+            ExternalIPAddress = "127.0.0.1",
+            ListeningPort = 3478,
+            MinPort = 49152,
+            MaxPort = 65535
+        };
         [Fact]
         public void Parse_And_Convert_To_ByteArray_RefreshRequest()
         {
-            var refreshRequest = new Refresh(_magicCookie, _transactionId, _refreshRequestByteArray);
+            var refreshRequest = new Refresh(_magicCookie, _transactionId, _refreshRequestByteArray, _appSettings);
             byte[] convertedRefreshRequestByteArray = refreshRequest.ToBytes();
             Assert.Equal(_refreshRequestByteArray, convertedRefreshRequestByteArray);
         }
@@ -38,7 +48,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
-            var refreshRequest = new Refresh(_magicCookie, _transactionId, _refreshRequestByteArray);
+            var refreshRequest = new Refresh(_magicCookie, _transactionId, _refreshRequestByteArray, _appSettings);
             byte[] successResponseByteArray = refreshRequest.CreateSuccessResponse();
             Assert.Equal(_refreshSuccessResponseByteArray, successResponseByteArray);
         }
@@ -46,7 +56,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateErrorResponse()
         {
-            var refreshRequest = new Refresh(_magicCookie, _transactionId, _refreshRequestByteArray);
+            var refreshRequest = new Refresh(_magicCookie, _transactionId, _refreshRequestByteArray, _appSettings);
             byte[] errorResponseByteArray = refreshRequest.CreateErrorResponse();
             Assert.Equal(_refreshErrorResponseByteArray, errorResponseByteArray);
         }

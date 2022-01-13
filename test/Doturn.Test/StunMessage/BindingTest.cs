@@ -23,10 +23,21 @@ namespace Doturn.StunMessage.Test
             0x01, 0x11, 0x00, 0x00, 0x21, 0x12, 0xa4, 0x42, 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58, // header
         };
 
+        private readonly AppSettings _appSettings = new()
+        {
+            Username = "username",
+            Password = "password",
+            Realm = "example.com",
+            ExternalIPAddress = "127.0.0.1",
+            ListeningPort = 3478,
+            MinPort = 49152,
+            MaxPort = 65535
+        };
+
         [Fact]
         public void Parse_And_Convert_To_ByteArray_BindingRequest()
         {
-            var bindingRequest = new Binding(_magicCookie, _transactionId);
+            var bindingRequest = new Binding(_magicCookie, _transactionId, _appSettings);
             byte[] convertedBindingRequestByteArray = bindingRequest.ToBytes();
             Assert.Equal(_bindingRequestByteArray, convertedBindingRequestByteArray);
         }
@@ -34,7 +45,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateSuccessResponse()
         {
-            var bindingRequest = new Binding(BitConverter.GetBytes((int)0), _transactionId);
+            var bindingRequest = new Binding(BitConverter.GetBytes((int)0), _transactionId, _appSettings);
             IPEndPoint endpoint = new(IPAddress.Loopback, 20000);
             byte[] successResponseByteArray = bindingRequest.CreateSuccessResponse(endpoint);
             Assert.Equal(_bindingSuccessResponseByteArray, successResponseByteArray);
@@ -43,7 +54,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateXorSuccessResponse()
         {
-            var bindingRequest = new Binding(_magicCookie, _transactionId);
+            var bindingRequest = new Binding(_magicCookie, _transactionId, _appSettings);
             IPEndPoint endpoint = new(IPAddress.Loopback, 20000);
             byte[] successResponseByteArray = bindingRequest.CreateSuccessResponse(endpoint);
             Assert.Equal(_bindingXorSuccessResponseByteArray, successResponseByteArray);
@@ -52,7 +63,7 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void CreateErrorResponse()
         {
-            var bindingRequest = new Binding(_magicCookie, _transactionId);
+            var bindingRequest = new Binding(_magicCookie, _transactionId, _appSettings);
             byte[] errorResponseByteArray = bindingRequest.CreateErrorResponse();
             Assert.Equal(_bindingErrorResponseByteArray, errorResponseByteArray);
         }

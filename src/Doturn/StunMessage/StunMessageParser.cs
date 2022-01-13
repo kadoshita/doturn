@@ -8,7 +8,7 @@ namespace Doturn.StunMessage
     }
     public static class StunMessageParser
     {
-        public static IStunMessage Parse(byte[] data)
+        public static IStunMessage Parse(byte[] data, AppSettings appSettings)
         {
             byte[] messageTypeBytes = data[0..2]; // 16bit
             byte[] messageLengthBytes = data[2..4]; // 16bit
@@ -26,19 +26,19 @@ namespace Doturn.StunMessage
 
             if (messageType == Type.BINDING)
             {
-                return new Binding(header.magicCookie, header.transactionId);
+                return new Binding(header.magicCookie, header.transactionId, appSettings);
             }
             else if (messageType == Type.ALLOCATE)
             {
-                return new Allocate(header.magicCookie, header.transactionId, messageBytes);
+                return new Allocate(header.magicCookie, header.transactionId, messageBytes, appSettings);
             }
             else if (messageType == Type.CREATE_PERMISSION)
             {
-                return new CreatePermission(header.magicCookie, header.transactionId, messageBytes);
+                return new CreatePermission(header.magicCookie, header.transactionId, messageBytes, appSettings);
             }
             else if (messageType == Type.REFRESH)
             {
-                return new Refresh(header.magicCookie, header.transactionId, messageBytes);
+                return new Refresh(header.magicCookie, header.transactionId, messageBytes, appSettings);
             }
             else
             {
