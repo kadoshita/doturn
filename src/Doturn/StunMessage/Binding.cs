@@ -11,17 +11,17 @@ namespace Doturn.StunMessage
         private readonly byte[] _magicCookie;
         public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new();
-        private AppSettings _appSettings;
+        private IAppSettings _appSettings;
         public override Type Type => type;
 
-        public Binding(byte[] magicCookie, byte[] transactionId, AppSettings appSettings)
+        public Binding(byte[] magicCookie, byte[] transactionId, IAppSettings appSettings)
         {
             type = Type.BINDING;
             _magicCookie = magicCookie;
             this.transactionId = transactionId;
             _appSettings = appSettings;
         }
-        public Binding(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, AppSettings appSettings)
+        public Binding(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
         {
             type = isSuccess ? Type.BINDING_SUCCESS : Type.BINDING_ERROR;
             _magicCookie = magicCookie;

@@ -32,7 +32,7 @@ namespace Doturn.StunMessage.Test
             0xFF, 0xFF, 0x00, 0x00, 0x21, 0x12, 0xa4, 0x42, 0x54, 0x45, 0x53, 0x54, 0x54, 0x45, 0x53, 0x54, 0x54, 0x45, 0x53, 0x54 // header
         };
 
-        private readonly AppSettings _appSettings = new()
+        private readonly IAppSettings _appSettings = new AppSettings()
         {
             Username = "username",
             Password = "password",

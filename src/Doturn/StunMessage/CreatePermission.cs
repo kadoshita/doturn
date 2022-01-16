@@ -10,10 +10,10 @@ namespace Doturn.StunMessage
         private readonly byte[] _magicCookie;
         public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new();
-        private AppSettings _appSettings;
+        private IAppSettings _appSettings;
         public override Type Type => type;
 
-        public CreatePermission(byte[] magicCookie, byte[] transactionId, byte[] data, AppSettings appSettings)
+        public CreatePermission(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
         {
             type = Type.CREATE_PERMISSION;
             _magicCookie = magicCookie;
@@ -22,7 +22,7 @@ namespace Doturn.StunMessage
             attributes = StunAttributeParser.Parse(data);
             _appSettings = appSettings;
         }
-        public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, AppSettings appSettings)
+        public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
         {
             type = isSuccess ? Type.CREATE_PERMISSION_SUCCESS : Type.CREATE_PERMISSION_ERROR;
             _magicCookie = magicCookie;

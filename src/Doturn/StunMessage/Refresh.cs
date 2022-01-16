@@ -12,11 +12,11 @@ namespace Doturn.StunMessage
         private readonly byte[] _magicCookie;
         public readonly byte[] transactionId;
         public readonly List<IStunAttribute> attributes = new();
-        private AppSettings _appSettings;
+        private IAppSettings _appSettings;
 
         public override Type Type => type;
 
-        public Refresh(byte[] magicCookie, byte[] transactionId, byte[] data, AppSettings appSettings)
+        public Refresh(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
         {
             type = Type.REFRESH;
             _magicCookie = magicCookie;
@@ -25,7 +25,7 @@ namespace Doturn.StunMessage
             attributes = StunAttributeParser.Parse(data);
             _appSettings = appSettings;
         }
-        public Refresh(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, AppSettings appSettings)
+        public Refresh(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
         {
             type = isSuccess ? Type.REFRESH_SUCCESS : Type.REFRESH_ERROR;
             _magicCookie = magicCookie;

@@ -8,7 +8,7 @@ namespace Doturn.StunMessage
     }
     public static class StunMessageParser
     {
-        public static IStunMessage Parse(byte[] data, AppSettings appSettings)
+        public static IStunMessage Parse(byte[] data, IAppSettings appSettings)
         {
             byte[] messageTypeBytes = data[0..2]; // 16bit
             byte[] messageLengthBytes = data[2..4]; // 16bit
