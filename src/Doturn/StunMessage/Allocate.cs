@@ -79,17 +79,17 @@ namespace Doturn.StunMessage
             attributes.Add(realm);
             var software = new Software();
             attributes.Add(software);
-            var tmpAllocateSuccessResponse = new Allocate(_magicCookie, transactionId, attributes, true, _appSettings);
-            byte[] tmpAllocateSuccessResponseByteArray = tmpAllocateSuccessResponse.ToBytes();
+            var tmpAllocateErrorResponse = new Allocate(_magicCookie, transactionId, attributes, false, _appSettings);
+            byte[] tmpAllocateErrorResponseByteArray = tmpAllocateErrorResponse.ToBytes();
 
-            var tmpStunHeader = new StunHeader(Type.ALLOCATE_ERROR, (short)tmpAllocateSuccessResponseByteArray.Length, transactionId);
+            var tmpStunHeader = new StunHeader(Type.ALLOCATE_ERROR, (short)tmpAllocateErrorResponseByteArray.Length, transactionId);
             byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
-            byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpAllocateSuccessResponseByteArray.Length + fingerprintlength];
-            ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpAllocateSuccessResponseByteArray);
+            byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpAllocateErrorResponseByteArray.Length + fingerprintlength];
+            ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpAllocateErrorResponseByteArray);
 
             var stunHeader = new StunHeader(Type.ALLOCATE_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
             byte[] stunHeaderByteArray = stunHeader.ToBytes();
-            ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpAllocateSuccessResponseByteArray);
+            ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpAllocateErrorResponseByteArray);
             var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
             byte[] fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
