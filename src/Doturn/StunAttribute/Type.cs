@@ -10,6 +10,7 @@ namespace Doturn.StunAttribute
         ERROR_CODE = 0x0009,
         LIFETIME = 0x000D,
         XOR_PEER_ADDRESS = 0x0012,
+        DATA = 0x0013,
         REALM = 0x0014,
         NONCE = 0x0015,
         XOR_RELAYED_ADDRESS = 0x0016,
