@@ -1,0 +1,98 @@
+name: publish
+
+on:
+  issues:
+    types:
+      - labeled
+
+jobs:
+  publish-issue-as-docs:
+    if: contains(github.event.issue.labels.*.name, 'publish')　&& github.event.issue.author_association == 'OWNER'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v5
+        id: add-docs-from-comments
+        with:
+          script: |
+            const issue = await github.rest.issues.get({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo
+            });
+            const comments = await github.rest.issues.listComments({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo
+            });
+            
+            const originalIssueLink = `[Original Issue](${issue.data.html_url})`;
+
+            const text = [originalIssueLink, issue.data.body].concat(comments.data.map(d => d.body));
+            const docs = {
+                title: issue.data.title,
+                text: text.join('\n\n')
+            };
+
+            const base64 = Buffer.from(docs.text).toString('base64');
+
+            const user = await github.rest.users.getByUsername({
+                username: context.repo.owner
+            });
+
+            let createOrUpdateFileContentsRequestParams;
+
+            try {
+                const content = await github.rest.repos.getContent({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    path: `${docs.title}.md`
+                });
+                createOrUpdateFileContentsRequestParams = {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    path: `${docs.title}.md`,
+                    message: `Update ${docs.title}.md`,
+                    content: base64,
+                    sha: content.data.sha,
+                    committer: {
+                        name: context.repo.owner,
+                        email: user.data.email
+                    },
+                    author: {
+                        name: context.repo.owner,
+                        email: user.data.email
+                    }
+                };
+            } catch (e) {
+                createOrUpdateFileContentsRequestParams = {
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    path: `${docs.title}.md`,
+                    message: `Add ${docs.title}.md`,
+                    content: base64,
+                    committer: {
+                        name: context.repo.owner,
+                        email: user.data.email
+                    },
+                    author: {
+                        name: context.repo.owner,
+                        email: user.data.email
+                    }
+                };
+            }
+
+            await github.rest.repos.createOrUpdateFileContents(createOrUpdateFileContentsRequestParams);
+            
+            await github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'publish'
+            });
+            
+            await github.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed'
+            });
