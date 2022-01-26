@@ -1,0 +1,22 @@
+name: draft
+
+on:
+  issues:
+    types:
+      - opened
+
+
+jobs:
+  add-draft-label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v5
+        id: add-draft-label-to-new-issue
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['draft']
+            });
