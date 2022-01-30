@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Doturn.StunAttribute;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Doturn.StunMessage
 {
