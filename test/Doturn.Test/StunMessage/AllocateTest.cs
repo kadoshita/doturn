@@ -73,7 +73,7 @@ namespace Doturn.StunMessage.Test
         {
             var allocateRequest = new Allocate(_magicCookie, _transactionId, _allocateRequestByteArray, _appSettings);
             IPEndPoint endpoint = new(IPAddress.Loopback, 20000);
-            byte[] successResponseByteArray = allocateRequest.CreateSuccessResponse(endpoint);
+            byte[] successResponseByteArray = allocateRequest.CreateSuccessResponse(endpoint, IPAddress.Loopback, 20000);
             Assert.Equal(_allocateSuccessResponseByteArray, successResponseByteArray);
         }
 

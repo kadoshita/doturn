@@ -32,16 +32,14 @@ namespace Doturn.StunMessage
             this.attributes = attributes;
             _appSettings = appSettings;
         }
-        public byte[] CreateSuccessResponse(IPEndPoint endPoint)
+        public byte[] CreateSuccessResponse(IPEndPoint endPoint, IPAddress relayAddress, ushort relayPort)
         {
             int messageIntegrityLength = 24;
             int fingerprintlength = 8;
 
             List<IStunAttribute> attributes = new();
-            //TODO external ip addressを設定から読み込む
-            var ipAddress = IPAddress.Parse(_appSettings.ExternalIPAddress);
             //TODO PortAllocatorでポートを選択してセットする
-            var xorRelayedAddress = new XorRelayedAddress(ipAddress, 20000);
+            var xorRelayedAddress = new XorRelayedAddress(relayAddress, relayPort);
             attributes.Add(xorRelayedAddress);
             //TODO ここのip addressとportはrequestしてきたclientのもの
             var xorMappedAddress = new XorMappedAddress(endPoint);
