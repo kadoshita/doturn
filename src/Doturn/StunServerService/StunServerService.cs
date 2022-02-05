@@ -93,6 +93,21 @@ namespace Doturn.StunServerService
                         _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                         await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
+                    else if (message.Type == StunMessage.Type.SEND_INDICATION)
+                    {
+                        var sendIndication = (StunMessage.Send)message;
+                        byte[] applicationData = sendIndication.ToApplicationDataBytes();
+                        ConnectionEntry entry = _connectionManager.GetEntry(data.RemoteEndPoint);
+                        _logger.LogDebug(listenPort, "send: {messageType} {bytes}", message.Type, BitConverter.ToString(applicationData));
+                        await entry.sss._client.SendAsync(applicationData, applicationData.Length, entry.peer);
+                    }
+                    else if (message.Type == StunMessage.Type.DATA_INDICATION)
+                    {
+                        byte[] dataIndicationBytes = ((StunMessage.Data)message).CreateDataIndication(data.RemoteEndPoint);
+                        ConnectionEntry entry = _connectionManager.GetEntryByPeer(data.RemoteEndPoint);
+                        _logger.LogDebug(listenPort, "data: {messageType} {bytes}", message.Type, BitConverter.ToString(dataIndicationBytes));
+                        await _client.SendAsync(dataIndicationBytes, dataIndicationBytes.Length, entry.client);
+                    }
                 }
                 catch (StunMessage.StunMessageParseException)
                 {
