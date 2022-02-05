@@ -20,6 +20,9 @@ namespace Doturn.StunMessage
         CREATE_PERMISSION = 0x0008,
         CREATE_PERMISSION_SUCCESS = 0x0108,
         CREATE_PERMISSION_ERROR = 0x0118,
+        CHANNEL_BIND = 0x0009,
+        CHANNEL_BIND_SUCCESS = 0x0109,
+        CHANNEL_BIND_ERROR = 0x0119
     }
     public static class StunMessageTypeExtends
     {
