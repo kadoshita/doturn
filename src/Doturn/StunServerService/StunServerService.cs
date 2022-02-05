@@ -122,7 +122,52 @@ namespace Doturn.StunServerService
                 }
                 catch (StunMessage.StunMessageParseException)
                 {
-                    _logger.LogDebug($"Unknown data received: {BitConverter.ToString(data.Buffer)}");
+                    var messageHead = data.Buffer[0..2];
+                    var messageLength = data.Buffer[2..4];
+                    var rawData = data.Buffer[4..data.Buffer.Length];
+                    var entry = _connectionManager.GetEntryByChannelNumber(messageHead);
+                    if (entry == null)
+                    {
+                        _logger.LogDebug(listenPort, "data received");
+                        var peerEntry = _connectionManager.GetEntryByPeer(data.RemoteEndPoint);
+                        if (peerEntry == null)
+                        {
+                            _logger.LogDebug(listenPort, "Unknown data received: {bytes}", BitConverter.ToString(data.Buffer));
+                            continue;
+                        }
+                        _logger.LogDebug(listenPort, "Application data received: {messageHead} {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", BitConverter.ToString(messageHead), BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, peerEntry.client.Address, peerEntry.client.Port);
+                        if (peerEntry.channelNumber == null)
+                        {
+                            var dataIndication = new StunMessage.Data(data.Buffer);
+                            var dataIndicationBytes = dataIndication.CreateDataIndication(data.RemoteEndPoint);
+                            if (peerEntry.client != null)
+                            {
+                                _logger.LogDebug(listenPort, "send: {messageType} {bytes}", dataIndication.Type, BitConverter.ToString(data.Buffer));
+                                await _connectionManager.SendMainClientAsync(dataIndicationBytes, dataIndicationBytes.Length, peerEntry.client);
+                            }
+                        }
+                        else
+                        {
+                            var channelData = new byte[4 + data.Buffer.Length];
+                            var lengthBytes = BitConverter.GetBytes((ushort)data.Buffer.Length);
+                            if (BitConverter.IsLittleEndian)
+                            {
+                                Array.Reverse(lengthBytes);
+                            }
+                            ByteArrayUtils.MergeByteArray(ref channelData, peerEntry.channelNumber, lengthBytes, data.Buffer);
+                            await _connectionManager.SendMainClientAsync(channelData, channelData.Length, peerEntry.client);
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        _logger.LogDebug(listenPort, "ChannelData received: {messageHead} {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", BitConverter.ToString(messageHead), BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, entry.peer.Address, entry.peer.Port);
+                        if (entry.sss != null && entry.sss._client != null)
+                        {
+                            await entry.sss._client.SendAsync(rawData, rawData.Length, entry.peer);
+                        }
+                        continue;
+                    }
                 }
             }
         }
