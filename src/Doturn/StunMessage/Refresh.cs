@@ -7,86 +7,89 @@ namespace Doturn.StunMessage
     public class Refresh : StunMessageBase
     {
         public readonly Type type;
-        private readonly byte[] magicCookie;
+        private readonly byte[] _magicCookie;
         public readonly byte[] transactionId;
-        public readonly List<IStunAttribute> attributes = new List<IStunAttribute>();
+        public readonly List<IStunAttribute> attributes = new();
+        private IAppSettings _appSettings;
 
-        public override Type Type => this.type;
+        public override Type Type => type;
 
-        public Refresh(byte[] magicCookie, byte[] transactionId, byte[] data)
+        public Refresh(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
         {
-            this.type = Type.REFRESH;
-            this.magicCookie = magicCookie;
+            type = Type.REFRESH;
+            _magicCookie = magicCookie;
             this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
-            this.attributes = StunAttributeParser.Parse(data);
+            attributes = StunAttributeParser.Parse(data);
+            _appSettings = appSettings;
         }
-        public Refresh(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess)
+        public Refresh(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
         {
-            this.type = isSuccess ? Type.REFRESH_SUCCESS : Type.REFRESH_ERROR;
-            this.magicCookie = magicCookie;
+            type = isSuccess ? Type.REFRESH_SUCCESS : Type.REFRESH_ERROR;
+            _magicCookie = magicCookie;
             this.transactionId = transactionId;
             //TODO 必要なattributeが揃っているかチェックする
             this.attributes = attributes;
+            _appSettings = appSettings;
         }
         public byte[] CreateSuccessResponse()
         {
-            var messageIntegrityLength = 24;
-            var fingerprintlength = 8;
+            int messageIntegrityLength = 24;
+            int fingerprintlength = 8;
 
-            List<IStunAttribute> attributes = new List<IStunAttribute>();
+            List<IStunAttribute> attributes = new();
             var lifetime = new Lifetime();
             attributes.Add(lifetime);
             var software = new Software();
             attributes.Add(software);
-            var tmpRefreshSuccessResponse = new Refresh(this.magicCookie, this.transactionId, attributes, true);
-            var tmpRefreshSuccessResponseByteArray = tmpRefreshSuccessResponse.ToBytes();
+            var tmpRefreshSuccessResponse = new Refresh(_magicCookie, transactionId, attributes, true, _appSettings);
+            byte[] tmpRefreshSuccessResponseByteArray = tmpRefreshSuccessResponse.ToBytes();
 
-            var tmpStunHeader = new StunHeader(StunMessage.Type.REFRESH_SUCCESS, (short)(tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength), this.transactionId);
-            var tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
-            var responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintlength];
+            var tmpStunHeader = new StunHeader(Type.REFRESH_SUCCESS, (short)(tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
+            byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
+            byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintlength];
             ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpRefreshSuccessResponseByteArray);
-            var messageIntegrity = new MessageIntegrity("username", "password", "example.com", responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintlength))]);
-            var messageIntegrityByteArray = messageIntegrity.ToBytes();
+            var messageIntegrity = new MessageIntegrity(_appSettings.Username, _appSettings.Password, _appSettings.Realm, responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintlength))]);
+            byte[] messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-            var stunHeader = new StunHeader(StunMessage.Type.REFRESH_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintlength), this.transactionId);
-            var stunHeaderByteArray = stunHeader.ToBytes();
+            var stunHeader = new StunHeader(Type.REFRESH_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+            byte[] stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpRefreshSuccessResponseByteArray, messageIntegrityByteArray);
             var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
-            var fingerprintByteArray = fingerprint.ToBytes();
+            byte[] fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
         }
         public byte[] CreateErrorResponse()
         {
-            var fingerprintlength = 8;
+            int fingerprintlength = 8;
 
-            List<IStunAttribute> attributes = new List<IStunAttribute>();
+            List<IStunAttribute> attributes = new();
             var software = new Software();
             attributes.Add(software);
-            var tmpRefreshErrorResponse = new Refresh(this.magicCookie, this.transactionId, attributes, false);
-            var tmpRefreshErrorResponseByteArray = tmpRefreshErrorResponse.ToBytes();
+            var tmpRefreshErrorResponse = new Refresh(_magicCookie, transactionId, attributes, false, _appSettings);
+            byte[] tmpRefreshErrorResponseByteArray = tmpRefreshErrorResponse.ToBytes();
 
-            var tmpStunHeader = new StunHeader(StunMessage.Type.REFRESH_ERROR, (short)(tmpRefreshErrorResponseByteArray.Length), this.transactionId);
-            var tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
-            var responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpRefreshErrorResponseByteArray.Length + fingerprintlength];
+            var tmpStunHeader = new StunHeader(Type.REFRESH_ERROR, (short)tmpRefreshErrorResponseByteArray.Length, transactionId);
+            byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
+            byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpRefreshErrorResponseByteArray.Length + fingerprintlength];
             ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpRefreshErrorResponseByteArray);
 
-            var stunHeader = new StunHeader(StunMessage.Type.REFRESH_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), this.transactionId);
-            var stunHeaderByteArray = stunHeader.ToBytes();
+            var stunHeader = new StunHeader(Type.REFRESH_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+            byte[] stunHeaderByteArray = stunHeader.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpRefreshErrorResponseByteArray);
             var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
-            var fingerprintByteArray = fingerprint.ToBytes();
+            byte[] fingerprintByteArray = fingerprint.ToBytes();
             ByteArrayUtils.MergeByteArray(ref responseByteArray, responseByteArray.Length - fingerprintByteArray.Length, fingerprintByteArray);
             return responseByteArray;
         }
         public override byte[] ToBytes()
         {
-            var res = new byte[0];
-            var endPos = 0;
-            this.attributes.ForEach(a =>
+            byte[] res = Array.Empty<byte>();
+            int endPos = 0;
+            attributes.ForEach(a =>
             {
-                var data = a.ToBytes();
+                byte[] data = a.ToBytes();
                 Array.Resize(ref res, res.Length + data.Length);
                 ByteArrayUtils.MergeByteArray(ref res, endPos, data);
                 endPos += data.Length;

@@ -13,15 +13,22 @@ namespace Doturn.StunMessage
         REFRESH = 0x0004,
         REFRESH_SUCCESS = 0x0104,
         REFRESH_ERROR = 0x0114,
+        SEND = 0x0006,
+        SEND_INDICATION = 0x0016,
+        DATA = 0x0007,
+        DATA_INDICATION = 0x0017,
         CREATE_PERMISSION = 0x0008,
         CREATE_PERMISSION_SUCCESS = 0x0108,
         CREATE_PERMISSION_ERROR = 0x0118,
+        CHANNEL_BIND = 0x0009,
+        CHANNEL_BIND_SUCCESS = 0x0109,
+        CHANNEL_BIND_ERROR = 0x0119
     }
     public static class StunMessageTypeExtends
     {
         public static byte[] ToBytes(this Type stunMessageType)
         {
-            var arr = BitConverter.GetBytes((Int16)stunMessageType);
+            byte[] arr = BitConverter.GetBytes((short)stunMessageType);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(arr);

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Doturn.Network;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +26,8 @@ namespace Doturn
         })
         .ConfigureServices((hostContext, services) =>
         {
+            services.AddSingleton<IConnectionManager, ConnectionManager>();
+            services.AddSingleton<IPortAllocator, PortAllocator>();
             services.AddHostedService<StunServerService.StunServerService>();
             services.Configure<AppSettings>(hostContext.Configuration);
         });

@@ -8,26 +8,26 @@ namespace Doturn.StunAttribute
         public readonly Type type = Type.XOR_PEER_ADDRESS;
         public readonly IPEndPoint endpoint;
         public readonly IPEndPoint realEndpoint;
-        public override Type Type => this.type;
+        public override Type Type => type;
         /// <summary>
         /// Create XorPeerAddress from IP Address and Port
         /// </summary>
         /// <param name="address">Real address</param>
         /// <param name="port">Real port</param>
-        public XorPeerAddress(IPAddress address, UInt16 port)
+        public XorPeerAddress(IPAddress address, ushort port)
         {
-            this.realEndpoint = new IPEndPoint(address, port);
-            this.endpoint = this.endpointXor(address.ToString(), port);
+            realEndpoint = new IPEndPoint(address, port);
+            endpoint = endpointXor(address.ToString(), port);
         }
         /// <summary>
         /// Create XorPeerAddress from IP Address and Port
         /// </summary>
         /// <param name="address">Real address</param>
         /// <param name="port">Real port</param>
-        public XorPeerAddress(string address, UInt16 port)
+        public XorPeerAddress(string address, ushort port)
         {
-            this.realEndpoint = new IPEndPoint(IPAddress.Parse(address), port);
-            this.endpoint = this.endpointXor(address, port);
+            realEndpoint = new IPEndPoint(IPAddress.Parse(address), port);
+            endpoint = endpointXor(address, port);
         }
         /// <summary>
         /// Create XorPeerAddress from IP Address and Port
@@ -35,8 +35,8 @@ namespace Doturn.StunAttribute
         /// <param name="endpoint">Real IP endpoint</param>
         public XorPeerAddress(IPEndPoint endpoint)
         {
-            this.realEndpoint = endpoint;
-            this.endpoint = this.endpointXor(endpoint.Address.ToString(), (UInt16)endpoint.Port);
+            realEndpoint = endpoint;
+            this.endpoint = endpointXor(endpoint.Address.ToString(), (ushort)endpoint.Port);
         }
         /// <summary>
         /// Create XorPeerAddress from IP Address ByteArray and Port ByteArray
@@ -50,22 +50,22 @@ namespace Doturn.StunAttribute
                 Array.Reverse(portByteArray);
             }
             var address = new IPAddress(addressByteArray);
-            var port = BitConverter.ToUInt16(portByteArray);
+            ushort port = BitConverter.ToUInt16(portByteArray);
             var endpoint = new IPEndPoint(address, port);
             this.endpoint = endpoint;
-            this.realEndpoint = endpointXor(address.ToString(), port);
+            realEndpoint = endpointXor(address.ToString(), port);
         }
 
-        private IPEndPoint endpointXor(string address, UInt16 port)
+        private static IPEndPoint endpointXor(string address, ushort port)
         {
-            var addressByteArray = IPAddress.Parse(address).GetAddressBytes();
-            var portByteArray = BitConverter.GetBytes((UInt16)port);
+            byte[] addressByteArray = IPAddress.Parse(address).GetAddressBytes();
+            byte[] portByteArray = BitConverter.GetBytes((ushort)port);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
             }
-            var xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
-            var xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
+            byte[] xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
+            byte[] xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(xorPortByteArray);
@@ -75,30 +75,30 @@ namespace Doturn.StunAttribute
 
         public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            var addressByteArray = this.endpoint.Address.GetAddressBytes();
-            var portByteArray = BitConverter.GetBytes((Int16)this.endpoint.Port);
+            byte[] typeByteArray = type.ToBytes();
+            byte[] addressByteArray = endpoint.Address.GetAddressBytes();
+            byte[] portByteArray = BitConverter.GetBytes((short)endpoint.Port);
 
             byte[] reserved = { 0x00 };
             byte[] addressFamilyByte = { 0x01 };
-            var length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
-            var lengthByteArray = BitConverter.GetBytes((Int16)length);
+            int length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
+            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(portByteArray);
                 Array.Reverse(lengthByteArray);
             }
-            var res = new byte[2 + 2 + length];
+            byte[] res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, portByteArray, addressByteArray);
             return res;
         }
 
         public static XorPeerAddress Parse(byte[] data)
         {
-            var reservedByteArray = data[0..1];
-            var protocolFamilyByteArray = data[1..2];
-            var portByteArray = data[2..4];
-            var addressByteArray = data[4..data.Length];
+            _ = data[0..1];
+            _ = data[1..2];
+            byte[] portByteArray = data[2..4];
+            byte[] addressByteArray = data[4..data.Length];
 
             return new XorPeerAddress(addressByteArray, portByteArray);
         }

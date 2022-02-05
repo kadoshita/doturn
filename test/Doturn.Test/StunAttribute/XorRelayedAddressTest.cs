@@ -10,10 +10,10 @@ namespace Doturn.StunAttribute.Test
         [InlineData("203.0.113.1", 20000, new byte[] { 0x00, 0x16, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0xEA, 0x12, 0xD5, 0x43 }, "234.18.213.67", 28466)]
         [InlineData("192.0.2.1", 20000, new byte[] { 0x00, 0x16, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0xE1, 0x12, 0xA6, 0x43 }, "225.18.166.67", 28466)]
         [InlineData("94.36.122.203", 20000, new byte[] { 0x00, 0x16, 0x00, 0x08, 0x00, 0x01, 0x6F, 0x32, 0x7F, 0x36, 0xDE, 0x89 }, "127.54.222.137", 28466)]
-        public void XorRelayedAddress_Convert_To_ByteArray(string realAddress, UInt16 realPort, byte[] expect, string address, UInt16 port)
+        public void XorRelayedAddress_Convert_To_ByteArray(string realAddress, ushort realPort, byte[] expect, string address, ushort port)
         {
             var xorRelayedAddress = new XorRelayedAddress(realAddress, realPort);
-            var byteArray = xorRelayedAddress.ToBytes();
+            byte[] byteArray = xorRelayedAddress.ToBytes();
             Assert.Equal(expect, byteArray);
             Assert.Equal(realAddress, xorRelayedAddress.realEndpoint.Address.ToString());
             Assert.Equal(realPort, xorRelayedAddress.realEndpoint.Port);

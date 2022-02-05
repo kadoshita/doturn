@@ -16,7 +16,7 @@ namespace Doturn
         private static void _MergeByteArray(ref byte[] res, int offset, params byte[][] data)
         {
             int endPos = offset;
-            foreach (var datum in data)
+            foreach (byte[] datum in data)
             {
                 Buffer.BlockCopy(datum, 0, res, endPos, datum.Length);
                 endPos += datum.Length;
@@ -25,13 +25,13 @@ namespace Doturn
 
         public static byte[] XorPort(byte[] portByteArray)
         {
-            var magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+            byte[] magicCookie = BitConverter.GetBytes((int)0x2112a442);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(magicCookie);
             }
-            var xorPortByteArray = new byte[portByteArray.Length];
-            for (var i = 0; i < portByteArray.Length; i++)
+            byte[] xorPortByteArray = new byte[portByteArray.Length];
+            for (int i = 0; i < portByteArray.Length; i++)
             {
                 xorPortByteArray[i] = (byte)(portByteArray[i] ^ magicCookie[i]);
             }
@@ -41,13 +41,13 @@ namespace Doturn
 
         public static byte[] XorAddress(byte[] addressByteArray)
         {
-            var magicCookie = BitConverter.GetBytes((Int32)0x2112a442);
+            byte[] magicCookie = BitConverter.GetBytes((int)0x2112a442);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(magicCookie);
             }
-            var xorAddressByteArray = new byte[addressByteArray.Length];
-            for (var i = 0; i < addressByteArray.Length; i++)
+            byte[] xorAddressByteArray = new byte[addressByteArray.Length];
+            for (int i = 0; i < addressByteArray.Length; i++)
             {
                 xorAddressByteArray[i] = (byte)(addressByteArray[i] ^ magicCookie[i]);
             }

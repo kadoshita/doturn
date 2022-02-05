@@ -10,11 +10,11 @@ namespace Doturn.StunAttribute
     {
         public readonly Type type = Type.USERNAME;
         public readonly string username;
-        public override Type Type => this.type;
+        public override Type Type => type;
 
         public Username(string username)
         {
-            if (String.IsNullOrEmpty(username))
+            if (string.IsNullOrEmpty(username))
             {
                 throw new UsernameIsEmptyException();
             }
@@ -23,21 +23,21 @@ namespace Doturn.StunAttribute
 
         public override byte[] ToBytes()
         {
-            var typeByteArray = this.type.ToBytes();
-            byte[] usernameByteArray = System.Text.Encoding.ASCII.GetBytes(this.username);
-            var length = usernameByteArray.Length;
-            var lengthByteArray = BitConverter.GetBytes((Int16)length);
+            byte[] typeByteArray = type.ToBytes();
+            byte[] usernameByteArray = System.Text.Encoding.ASCII.GetBytes(username);
+            int length = usernameByteArray.Length;
+            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(lengthByteArray);
             }
-            var res = new byte[2 + 2 + length];
+            byte[] res = new byte[2 + 2 + length];
             ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, usernameByteArray);
             return res;
         }
         public static Username Parse(byte[] data)
         {
-            var usernameStr = System.Text.Encoding.ASCII.GetString(data);
+            string usernameStr = System.Text.Encoding.ASCII.GetString(data);
             return new Username(usernameStr);
         }
     }
