@@ -8,6 +8,7 @@ namespace Doturn.StunAttribute
         USERNAME = 0x0006,
         MESSAGE_INTEGRITY = 0x0008,
         ERROR_CODE = 0x0009,
+        CHANNEL_NUMBER = 0x000C,
         LIFETIME = 0x000D,
         XOR_PEER_ADDRESS = 0x0012,
         DATA = 0x0013,
