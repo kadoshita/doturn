@@ -40,6 +40,14 @@ namespace Doturn.StunMessage
             {
                 return new Refresh(header.magicCookie, header.transactionId, messageBytes, appSettings);
             }
+            else if (messageType == Type.SEND_INDICATION)
+            {
+                return new Send(messageBytes);
+            }
+            else if (messageType == Type.CHANNEL_BIND)
+            {
+                return new ChannelBind(header.magicCookie, header.transactionId, messageBytes, appSettings);
+            }
             else
             {
                 throw new StunMessageParseException();
