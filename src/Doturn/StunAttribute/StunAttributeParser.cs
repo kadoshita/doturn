@@ -117,6 +117,20 @@ namespace Doturn.StunAttribute
                     var xorRelayedAddress = XorRelayedAddress.Parse(xorRelayedAddressByteArray);
                     attributes.Add(xorRelayedAddress);
                 }
+                else if (attrType == Type.DATA)
+                {
+                    byte[] dataByteArray = data[endPos..(attrLength + endPos)];
+                    endPos += dataByteArray.Length;
+                    var dataAttribute = Data.Parse(dataByteArray);
+                    attributes.Add(dataAttribute);
+                }
+                else if (attrType == Type.CHANNEL_NUMBER)
+                {
+                    byte[] channelNumberByteArray = data[endPos..(attrLength + endPos)];
+                    endPos += channelNumberByteArray.Length;
+                    var channelNumber = ChannelNumber.Parse(channelNumberByteArray);
+                    attributes.Add(channelNumber);
+                }
                 else
                 {
                     break;
