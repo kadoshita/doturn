@@ -93,6 +93,17 @@ namespace Doturn.StunServerService
                         _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                         await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
+                    else if (message.Type == StunMessage.Type.CHANNEL_BIND)
+                    {
+                        var channelBindMessage = (StunMessage.ChannelBind)message;
+                        var xorPeerAddress = (StunAttribute.XorPeerAddress)channelBindMessage.attributes.Find(a => a.Type == StunAttribute.Type.XOR_PEER_ADDRESS);
+                        _connectionManager.AddPeerEndpoint(data.RemoteEndPoint, xorPeerAddress.realEndpoint);
+                        var channelNumber = (StunAttribute.ChannelNumber)channelBindMessage.attributes.Find(a => a.Type == StunAttribute.Type.CHANNEL_NUMBER);
+                        _connectionManager.AddChannelNumber(data.RemoteEndPoint, channelNumber.channelNumber);
+                        byte[] res = channelBindMessage.CreateSuccessResponse();
+                        _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
+                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                    }
                     else if (message.Type == StunMessage.Type.SEND_INDICATION)
                     {
                         var sendIndication = (StunMessage.Send)message;
