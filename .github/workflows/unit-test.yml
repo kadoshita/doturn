@@ -18,6 +18,9 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
       working-directory: src/Doturn/
+    - name: Copy settings file
+      run: cp appsettings.sample.json appsettings.json
+      working-directory: src/Doturn
     - name: Build
       run: dotnet build --no-restore
       working-directory: src/Doturn/
