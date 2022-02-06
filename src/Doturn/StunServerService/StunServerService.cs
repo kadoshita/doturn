@@ -72,12 +72,6 @@ namespace Doturn.StunServerService
                         _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                         await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
-                    else if (message.Type == StunMessage.Type.BINDING)
-                    {
-                        byte[] res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
-                        _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
-                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
-                    }
                     else if (message.Type == StunMessage.Type.CREATE_PERMISSION)
                     {
                         var createPermissionMessage = (StunMessage.CreatePermission)message;
@@ -122,14 +116,14 @@ namespace Doturn.StunServerService
                 }
                 catch (StunMessage.StunMessageParseException)
                 {
-                    var messageHead = data.Buffer[0..2];
-                    var messageLength = data.Buffer[2..4];
-                    var rawData = data.Buffer[4..data.Buffer.Length];
-                    var entry = _connectionManager.GetEntryByChannelNumber(messageHead);
+                    byte[] messageHead = data.Buffer[0..2];
+                    byte[] messageLength = data.Buffer[2..4];
+                    byte[] rawData = data.Buffer[4..data.Buffer.Length];
+                    ConnectionEntry entry = _connectionManager.GetEntryByChannelNumber(messageHead);
                     if (entry == null)
                     {
                         _logger.LogDebug(listenPort, "data received");
-                        var peerEntry = _connectionManager.GetEntryByPeer(data.RemoteEndPoint);
+                        ConnectionEntry peerEntry = _connectionManager.GetEntryByPeer(data.RemoteEndPoint);
                         if (peerEntry == null)
                         {
                             _logger.LogDebug(listenPort, "Unknown data received: {bytes}", BitConverter.ToString(data.Buffer));
@@ -138,8 +132,8 @@ namespace Doturn.StunServerService
                         _logger.LogDebug(listenPort, "Application data received: {messageHead} {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", BitConverter.ToString(messageHead), BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, peerEntry.client.Address, peerEntry.client.Port);
                         if (peerEntry.channelNumber == null)
                         {
-                            var dataIndication = new StunMessage.Data(data.Buffer);
-                            var dataIndicationBytes = dataIndication.CreateDataIndication(data.RemoteEndPoint);
+                            StunMessage.Data dataIndication = new(data.Buffer);
+                            byte[] dataIndicationBytes = dataIndication.CreateDataIndication(data.RemoteEndPoint);
                             if (peerEntry.client != null)
                             {
                                 _logger.LogDebug(listenPort, "send: {messageType} {bytes}", dataIndication.Type, BitConverter.ToString(data.Buffer));
@@ -148,8 +142,8 @@ namespace Doturn.StunServerService
                         }
                         else
                         {
-                            var channelData = new byte[4 + data.Buffer.Length];
-                            var lengthBytes = BitConverter.GetBytes((ushort)data.Buffer.Length);
+                            byte[] channelData = new byte[4 + data.Buffer.Length];
+                            byte[] lengthBytes = BitConverter.GetBytes((ushort)data.Buffer.Length);
                             if (BitConverter.IsLittleEndian)
                             {
                                 Array.Reverse(lengthBytes);

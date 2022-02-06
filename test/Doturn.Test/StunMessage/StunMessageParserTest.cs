@@ -46,28 +46,28 @@ namespace Doturn.StunMessage.Test
         [Fact]
         public void Parse_Binding_Request()
         {
-            var result = StunMessageParser.Parse(_bindingRequestBytes, _appSettings);
+            IStunMessage result = StunMessageParser.Parse(_bindingRequestBytes, _appSettings);
             Assert.Equal(Type.BINDING, result.Type);
         }
 
         [Fact]
         public void Parse_Allocate_Request()
         {
-            var result = StunMessageParser.Parse(_allocateRequestBytes, _appSettings);
+            IStunMessage result = StunMessageParser.Parse(_allocateRequestBytes, _appSettings);
             Assert.Equal(Type.ALLOCATE, result.Type);
         }
 
         [Fact]
         public void Parse_CreatePermission_Request()
         {
-            var result = StunMessageParser.Parse(_createPermissionRequestBytes, _appSettings);
+            IStunMessage result = StunMessageParser.Parse(_createPermissionRequestBytes, _appSettings);
             Assert.Equal(Type.CREATE_PERMISSION, result.Type);
         }
 
         [Fact]
         public void Parse_Refresh_Request()
         {
-            var result = StunMessageParser.Parse(_refreshRequestBytes, _appSettings);
+            IStunMessage result = StunMessageParser.Parse(_refreshRequestBytes, _appSettings);
             Assert.Equal(Type.REFRESH, result.Type);
         }
 

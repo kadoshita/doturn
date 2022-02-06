@@ -25,14 +25,14 @@ namespace Doturn.StunMessage
 
             var xorPeerAddress = new XorPeerAddress(peer);
             attributes.Add(xorPeerAddress);
-            var dataIndicationBytes = ToBytes();
+            byte[] dataIndicationBytes = ToBytes();
             var random = new Random();
-            var transactionIdBytes = new byte[12];
+            byte[] transactionIdBytes = new byte[12];
             random.NextBytes(transactionIdBytes);
 
 
             var stunHeader = new StunHeader(Type.DATA_INDICATION, (short)(dataIndicationBytes.Length + fingerprintLength), transactionIdBytes);
-            var stunHeaderBytes = stunHeader.ToBytes();
+            byte[] stunHeaderBytes = stunHeader.ToBytes();
             byte[] responseByteArray = new byte[stunHeaderBytes.Length + dataIndicationBytes.Length + fingerprintLength];
             var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
             byte[] fingerprintByteArray = fingerprint.ToBytes();
