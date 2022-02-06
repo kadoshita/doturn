@@ -1,4 +1,5 @@
 ﻿using Doturn.Network;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ namespace Doturn
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
-        .ConfigureLogging(logging =>
+        .ConfigureLogging((hostContext, logging) =>
         {
             logging.ClearProviders();
             logging.AddSimpleConsole(options =>
@@ -22,7 +23,7 @@ namespace Doturn
                 options.SingleLine = true;
                 options.TimestampFormat = "yyyy/MM/dd hh:mm:ss.fff ";
             });
-            logging.SetMinimumLevel(LogLevel.Debug);
+            logging.AddConfiguration(hostContext.Configuration.GetSection("Logging"));
         })
         .ConfigureServices((hostContext, services) =>
         {
