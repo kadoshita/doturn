@@ -12,14 +12,14 @@ namespace Doturn.Network
         public IPEndPoint client { get; set; }
         public IPEndPoint? peer { get; set; }
         public byte[]? channelNumber { get; set; }
-        public StunServerService.StunServerService sss { get; set; }
+        public StunServerService.IStunServerService sss { get; set; }
 
-        public ConnectionEntry(IPAddress clientAddress, ushort clientPort, StunServerService.StunServerService sss)
+        public ConnectionEntry(IPAddress clientAddress, ushort clientPort, StunServerService.IStunServerService sss)
         {
             client = new IPEndPoint(clientAddress, clientPort);
             this.sss = sss;
         }
-        public ConnectionEntry(IPEndPoint client, StunServerService.StunServerService sss)
+        public ConnectionEntry(IPEndPoint client, StunServerService.IStunServerService sss)
         {
             this.client = client;
             this.sss = sss;
@@ -41,6 +41,7 @@ namespace Doturn.Network
     }
     public class ConnectionManager : IConnectionManager
     {
+        // TODO Dictionaryを使う
         public readonly List<ConnectionEntry> _entries = new();
         private readonly ILogger<ConnectionManager> _logger;
 

@@ -10,7 +10,11 @@ using Microsoft.Extensions.Options;
 
 namespace Doturn.StunServerService
 {
-    public class StunServerService : BackgroundService
+    public interface IStunServerService
+    {
+        public UdpClient _client { get; }
+    }
+    public class StunServerService : BackgroundService, IStunServerService
     {
         private readonly ILogger<StunServerService> _logger;
         private readonly IOptions<AppSettings> _options;
@@ -18,6 +22,8 @@ namespace Doturn.StunServerService
         private readonly IPortAllocator _portAllocator;
         public readonly ushort listenPort;
         private readonly UdpClient _client;
+
+        UdpClient IStunServerService._client { get => _client; }
 
         public StunServerService(ILogger<StunServerService> logger, IOptions<AppSettings> options, IConnectionManager connectionManager, IPortAllocator portAllocator)
         {
