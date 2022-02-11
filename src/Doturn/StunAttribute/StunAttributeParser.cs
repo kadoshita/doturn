@@ -11,7 +11,7 @@ namespace Doturn.StunAttribute
             int endPos = 0;
             for (; data.Length > endPos;)
             {
-                byte[] attrTypeByteArray = data[(endPos)..(2 + endPos)];
+                byte[] attrTypeByteArray = data[endPos..(2 + endPos)];
                 endPos += attrTypeByteArray.Length;
                 byte[] attrLengthByteArray = data[endPos..(2 + endPos)];
                 endPos += attrLengthByteArray.Length;
@@ -121,6 +121,8 @@ namespace Doturn.StunAttribute
                 {
                     byte[] dataByteArray = data[endPos..(attrLength + endPos)];
                     endPos += dataByteArray.Length;
+                    int paddingLength = 8 - ((2 + 2 + attrLength) % 8);
+                    endPos += paddingLength;
                     var dataAttribute = Data.Parse(dataByteArray);
                     attributes.Add(dataAttribute);
                 }
