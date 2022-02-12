@@ -143,9 +143,22 @@ namespace Doturn.StunServerService
                     }
                     else if (message.Type == StunMessage.Type.REFRESH)
                     {
-                        byte[] res = ((StunMessage.Refresh)message).CreateSuccessResponse();
-                        _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
-                        await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        var refreshRequest = (StunMessage.Refresh)message;
+                        var lifetime = (StunAttribute.Lifetime)refreshRequest.attributes.Find(a => a.Type == StunAttribute.Type.LIFETIME);
+                        if (lifetime.lifetime == 0)
+                        {
+                            _connectionManager.DeleteEntry(data.RemoteEndPoint);
+                            _logger.LogInformation("delete entry {address}:{port}", data.RemoteEndPoint.Address.ToString(), data.RemoteEndPoint.Port);
+                            byte[] res = refreshRequest.CreateSuccessResponse(0);
+                            _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
+                            await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        }
+                        else
+                        {
+                            byte[] res = refreshRequest.CreateSuccessResponse();
+                            _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
+                            await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
+                        }
                     }
                     else if (message.Type == StunMessage.Type.CHANNEL_BIND)
                     {
