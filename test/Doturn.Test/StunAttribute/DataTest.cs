@@ -7,9 +7,9 @@ namespace Doturn.StunAttribute.Test
         [Fact]
         public void Data_Convert_To_ByteArray()
         {
-            var dataObj = new Data(new byte[] { 0x00, 0x00, 0x00, 0x00 });
+            var dataObj = new Data(new byte[] { 0x00, 0x00, 0x01 });
             byte[] byteArray = dataObj.ToBytes();
-            byte[] expect = new byte[] { 0x00, 0x13, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00 };
+            byte[] expect = new byte[] { 0x00, 0x13, 0x00, 0x03, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
             Assert.Equal(expect, byteArray);
         }
     }
