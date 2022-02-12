@@ -77,5 +77,20 @@ namespace Doturn.Network.Test
             Assert.Equal(entry, connectionManager.GetEntry(client));
             Assert.Equal(entry, connectionManager.GetEntryByChannelNumber(channelNumber));
         }
+
+        [Fact]
+        public void Delete_Entry()
+        {
+            var client1 = new IPEndPoint(IPAddress.Loopback, 20000);
+            var client2 = new IPEndPoint(IPAddress.Loopback, 20001);
+            var entry1 = new ConnectionEntry(client1.Address, (ushort)client1.Port, sss);
+            var entry2 = new ConnectionEntry(client2.Address, (ushort)client2.Port, sss);
+            var connectionManager = new ConnectionManager(logger);
+            connectionManager.AddConnectionEntry(entry1);
+            connectionManager.AddConnectionEntry(entry2);
+            Assert.Equal(2, connectionManager.GetEntriesCount());
+            connectionManager.DeleteEntry(client1);
+            Assert.Equal(1, connectionManager.GetEntriesCount());
+        }
     }
 }

@@ -33,6 +33,7 @@ namespace Doturn.Network
         void AddConnectionEntry(ConnectionEntry entry);
         void AddPeerEndpoint(IPEndPoint client, IPEndPoint peer);
         void AddChannelNumber(IPEndPoint client, byte[] channelNumber);
+        void DeleteEntry(IPEndPoint client);
         ConnectionEntry GetEntry(IPEndPoint endpoint);
         ConnectionEntry GetEntryByPeer(IPEndPoint endpoint);
         ConnectionEntry GetEntryByChannelNumber(byte[] channelNumber);
@@ -132,6 +133,22 @@ namespace Doturn.Network
                 _logger.LogDebug($"Entry {entry.client.Address}:{entry.client.Port} - {entry.peer.Address}:{entry.peer.Port}");
             }
             return entry;
+        }
+
+        public void DeleteEntry(IPEndPoint client)
+        {
+            _logger.LogDebug("Delete Entry {address}:{port}", client.Address.ToString(), client.Port);
+            var entry = _entries.Find(e => e.client.Equals(client));
+            if (entry != null)
+            {
+                if (entry.sss != null && entry.sss._client != null)
+                {
+                    _logger.LogDebug("Close connection");
+                    entry.sss._client.Close();
+                }
+                _entries.Remove(entry);
+            }
+            _logger.LogDebug("Entries Count {count}", GetEntriesCount());
         }
     }
 }
