@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Net.NetworkInformation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -25,12 +27,12 @@ namespace Doturn.Network
         }
         public ushort GetPort()
         {
-            _logger.LogDebug($"Entries {_connectionManager.GetEntriesCount()} MinPort  {_options.Value.MinPort}");
-            ushort port = (ushort)(_connectionManager.GetEntriesCount() + _options.Value.MinPort);
-            if (port > _options.Value.MaxPort)
-            {
-                throw new PortAllocateException();
-            }
+            //ref:https://gist.github.com/jrusbatch/4211535?permalink_comment_id=3504205#gistcomment-3504205
+            var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
+            var udpEndpoints = ipGlobalProperties.GetActiveUdpListeners();
+            var notAvailablePorts = udpEndpoints.Select(e => e.Port);
+            var port = (ushort)Enumerable.Range(_options.Value.MinPort, _options.Value.MaxPort).Except(notAvailablePorts).FirstOrDefault();
+            _logger.LogDebug("GetPort: {port}", port);
             return port;
         }
     }

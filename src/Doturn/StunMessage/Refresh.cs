@@ -34,11 +34,15 @@ namespace Doturn.StunMessage
         }
         public byte[] CreateSuccessResponse()
         {
+            return CreateSuccessResponse(600);
+        }
+        public byte[] CreateSuccessResponse(int lifetimeValue)
+        {
             int messageIntegrityLength = 24;
             int fingerprintlength = 8;
 
             List<IStunAttribute> attributes = new();
-            var lifetime = new Lifetime();
+            var lifetime = new Lifetime(lifetimeValue);
             attributes.Add(lifetime);
             var software = new Software();
             attributes.Add(software);

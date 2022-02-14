@@ -30,7 +30,6 @@ namespace Doturn.StunMessage
             byte[] transactionIdBytes = new byte[12];
             random.NextBytes(transactionIdBytes);
 
-
             var stunHeader = new StunHeader(Type.DATA_INDICATION, (short)(dataIndicationBytes.Length + fingerprintLength), transactionIdBytes);
             byte[] stunHeaderBytes = stunHeader.ToBytes();
             byte[] responseByteArray = new byte[stunHeaderBytes.Length + dataIndicationBytes.Length + fingerprintLength];
