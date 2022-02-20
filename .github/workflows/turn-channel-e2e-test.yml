@@ -1,0 +1,29 @@
+name: TURN E2E Test (channel)
+
+on:
+  push:
+    paths:
+      - '**.cs'
+      - '**.yml'
+      - '**.py'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          architecture: 'x64'
+      - name: Copy config file
+        run: cp ./src/Doturn/appsettings.sample.json ./src/Doturn/appsettings.json
+      - name: Start Server
+        run: docker-compose -f docker-compose.test.yml up -d
+      - name: Wait for server
+        run: sleep 10s
+      - name: Test
+        run: docker-compose -f docker-compose.test.yml exec -T coturn turnutils_uclient -v -u username -w password doturn -y -X -n 1024 -l 1024 -z 1 | ./script/check.py
+        timeout-minutes: 1
+      - name: Terminate Server
+        run: docker-compose -f docker-compose.test.yml down

@@ -76,6 +76,7 @@ def main():
     byte = ''
     lost_packets = ''
     for line in sys.stdin:
+        print(line)
         if 'Average round trip delay' in line:
             rtt = line
         if 'Average jitter' in line:
