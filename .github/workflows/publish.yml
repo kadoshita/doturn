@@ -7,7 +7,7 @@ on:
 
 jobs:
   publish-issue-as-docs:
-    if: contains(github.event.issue.labels.*.name, 'publish')　&& github.event.issue.author_association == 'OWNER'
+    if: contains(github.event.issue.labels.*.name, 'publish') && github.event.issue.author_association == 'OWNER'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v5

@@ -25,7 +25,7 @@ jobs:
       - name: Wait for server
         run: sleep 10s
       - name: Test
-        run: docker-compose -f docker-compose.test.yml exec -T coturn turnutils_uclient -v -u username -w password doturn -y -X -n 1024 -z 1 -s | ./script/check.py
+        run: docker-compose -f docker-compose.test.yml exec -T coturn turnutils_uclient -v -u username -w password doturn -y -X -n 1024 -z 1 -s -c | ./script/check.py
         timeout-minutes: 1
       - name: Terminate Server
         run: docker-compose -f docker-compose.test.yml down
