@@ -1,0 +1,19 @@
+{
+    "name": "C# (.NET)",
+    "build": {
+        "dockerfile": "Dockerfile",
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/node:1": {},
+        "ghcr.io/devcontainers/features/dotnet:1": {},
+        "ghcr.io/devcontainers/features/python:1": {}
+    },
+    "remoteUser": "vscode",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "eamodio.gitlens"
+            ]
+        }
+    }
+}
