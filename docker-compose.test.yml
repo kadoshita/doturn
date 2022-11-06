@@ -1,7 +1,7 @@
 version: '3'
 services:
   doturn:
-    image: mcr.microsoft.com/dotnet/sdk:5.0
+    image: mcr.microsoft.com/dotnet/sdk:6.0
     command: dotnet run
     working_dir: /usr/local/src/src/Doturn
     volumes:
