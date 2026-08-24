@@ -1,104 +1,103 @@
 using System;
 using System.Net;
 
-namespace Doturn.StunAttribute
+namespace Doturn.StunAttribute;
+
+public class XorMappedAddress : StunAttributeBase
 {
-    public class XorMappedAddress : StunAttributeBase
+    public readonly Type type = Type.XOR_MAPPED_ADDRESS;
+    public readonly IPEndPoint endpoint;
+    public readonly IPEndPoint realEndpoint;
+    public override Type Type => type;
+    /// <summary>
+    /// Create XorMappedAddress from IP Address and Port
+    /// </summary>
+    /// <param name="address">Real address</param>
+    /// <param name="port">Real port</param>
+    public XorMappedAddress(IPAddress address, ushort port)
     {
-        public readonly Type type = Type.XOR_MAPPED_ADDRESS;
-        public readonly IPEndPoint endpoint;
-        public readonly IPEndPoint realEndpoint;
-        public override Type Type => type;
-        /// <summary>
-        /// Create XorMappedAddress from IP Address and Port
-        /// </summary>
-        /// <param name="address">Real address</param>
-        /// <param name="port">Real port</param>
-        public XorMappedAddress(IPAddress address, ushort port)
+        realEndpoint = new IPEndPoint(address, port);
+        endpoint = endpointXor(address.ToString(), port);
+    }
+    /// <summary>
+    /// Create XorMappedAddress from IP Address and Port
+    /// </summary>
+    /// <param name="address">Real address</param>
+    /// <param name="port">Real address</param>
+    public XorMappedAddress(string address, ushort port)
+    {
+        realEndpoint = new IPEndPoint(IPAddress.Parse(address), port);
+        endpoint = endpointXor(address, port);
+    }
+    /// <summary>
+    /// Create XorMappedAddress from IP Address and Port
+    /// </summary>
+    /// <param name="endpoint">Real IP endpoint</param>
+    public XorMappedAddress(IPEndPoint endpoint)
+    {
+        realEndpoint = endpoint;
+        this.endpoint = endpointXor(endpoint.Address.ToString(), (ushort)endpoint.Port);
+    }
+    /// <summary>
+    /// Create XorMappedAddress from IP Address ByteArray and Port ByteArray
+    /// </summary>
+    /// <param name="addressByteArray">XOR address byte array</param>
+    /// <param name="portByteArray">XOR port byte array</param>
+    public XorMappedAddress(byte[] addressByteArray, byte[] portByteArray)
+    {
+        if (BitConverter.IsLittleEndian)
         {
-            realEndpoint = new IPEndPoint(address, port);
-            endpoint = endpointXor(address.ToString(), port);
+            Array.Reverse(portByteArray);
         }
-        /// <summary>
-        /// Create XorMappedAddress from IP Address and Port
-        /// </summary>
-        /// <param name="address">Real address</param>
-        /// <param name="port">Real address</param>
-        public XorMappedAddress(string address, ushort port)
+        var address = new IPAddress(addressByteArray);
+        ushort port = BitConverter.ToUInt16(portByteArray);
+        var endpoint = new IPEndPoint(address, port);
+        this.endpoint = endpoint;
+        realEndpoint = endpointXor(address.ToString(), port);
+    }
+    private static IPEndPoint endpointXor(string address, ushort port)
+    {
+        byte[] addressByteArray = IPAddress.Parse(address).GetAddressBytes();
+        byte[] portByteArray = BitConverter.GetBytes((ushort)port);
+        if (BitConverter.IsLittleEndian)
         {
-            realEndpoint = new IPEndPoint(IPAddress.Parse(address), port);
-            endpoint = endpointXor(address, port);
+            Array.Reverse(portByteArray);
         }
-        /// <summary>
-        /// Create XorMappedAddress from IP Address and Port
-        /// </summary>
-        /// <param name="endpoint">Real IP endpoint</param>
-        public XorMappedAddress(IPEndPoint endpoint)
+        byte[] xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
+        byte[] xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
+        if (BitConverter.IsLittleEndian)
         {
-            realEndpoint = endpoint;
-            this.endpoint = endpointXor(endpoint.Address.ToString(), (ushort)endpoint.Port);
+            Array.Reverse(xorPortByteArray);
         }
-        /// <summary>
-        /// Create XorMappedAddress from IP Address ByteArray and Port ByteArray
-        /// </summary>
-        /// <param name="addressByteArray">XOR address byte array</param>
-        /// <param name="portByteArray">XOR port byte array</param>
-        public XorMappedAddress(byte[] addressByteArray, byte[] portByteArray)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(portByteArray);
-            }
-            var address = new IPAddress(addressByteArray);
-            ushort port = BitConverter.ToUInt16(portByteArray);
-            var endpoint = new IPEndPoint(address, port);
-            this.endpoint = endpoint;
-            realEndpoint = endpointXor(address.ToString(), port);
-        }
-        private static IPEndPoint endpointXor(string address, ushort port)
-        {
-            byte[] addressByteArray = IPAddress.Parse(address).GetAddressBytes();
-            byte[] portByteArray = BitConverter.GetBytes((ushort)port);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(portByteArray);
-            }
-            byte[] xorAddressByteArray = ByteArrayUtils.XorAddress(addressByteArray);
-            byte[] xorPortByteArray = ByteArrayUtils.XorPort(portByteArray);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(xorPortByteArray);
-            }
-            return new IPEndPoint(new IPAddress(xorAddressByteArray), BitConverter.ToUInt16(xorPortByteArray));
-        }
+        return new IPEndPoint(new IPAddress(xorAddressByteArray), BitConverter.ToUInt16(xorPortByteArray));
+    }
 
-        public override byte[] ToBytes()
-        {
-            byte[] typeByteArray = type.ToBytes();
-            byte[] addressByteArray = endpoint.Address.GetAddressBytes();
-            byte[] portByteArray = BitConverter.GetBytes((short)endpoint.Port);
+    public override byte[] ToBytes()
+    {
+        byte[] typeByteArray = type.ToBytes();
+        byte[] addressByteArray = endpoint.Address.GetAddressBytes();
+        byte[] portByteArray = BitConverter.GetBytes((short)endpoint.Port);
 
-            byte[] reserved = { 0x00 };
-            byte[] addressFamilyByte = { 0x01 };
-            int length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
-            byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(portByteArray);
-                Array.Reverse(lengthByteArray);
-            }
-            byte[] res = new byte[2 + 2 + length];
-            ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, portByteArray, addressByteArray);
-            return res;
-        }
-        public static XorMappedAddress Parse(byte[] data)
+        byte[] reserved = { 0x00 };
+        byte[] addressFamilyByte = { 0x01 };
+        int length = reserved.Length + addressFamilyByte.Length + portByteArray.Length + addressByteArray.Length;
+        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
+        if (BitConverter.IsLittleEndian)
         {
-            _ = data[0..1];
-            _ = data[1..2];
-            byte[] portByteArray = data[2..4];
-            byte[] addressByteArray = data[4..data.Length];
-
-            return new XorMappedAddress(addressByteArray, portByteArray);
+            Array.Reverse(portByteArray);
+            Array.Reverse(lengthByteArray);
         }
+        byte[] res = new byte[2 + 2 + length];
+        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, reserved, addressFamilyByte, portByteArray, addressByteArray);
+        return res;
+    }
+    public static XorMappedAddress Parse(byte[] data)
+    {
+        _ = data[0..1];
+        _ = data[1..2];
+        byte[] portByteArray = data[2..4];
+        byte[] addressByteArray = data[4..data.Length];
+
+        return new XorMappedAddress(addressByteArray, portByteArray);
     }
 }
