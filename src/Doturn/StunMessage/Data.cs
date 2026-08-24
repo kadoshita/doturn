@@ -20,37 +20,41 @@ public class Data : StunMessageBase
 
     public byte[] CreateDataIndication(IPEndPoint peer)
     {
-        int fingerprintLength = 8;
+        const int fingerprintLength = 8;
 
         var xorPeerAddress = new XorPeerAddress(peer);
         Attributes.Add(xorPeerAddress);
         byte[] dataIndicationBytes = ToBytes();
-        var random = new Random();
         byte[] transactionIdBytes = new byte[12];
-        random.NextBytes(transactionIdBytes);
+        Random.Shared.NextBytes(transactionIdBytes);
 
         var stunHeader = new StunHeader(Type.DataIndication, (short)(dataIndicationBytes.Length + fingerprintLength), transactionIdBytes);
         byte[] stunHeaderBytes = stunHeader.ToBytes();
         byte[] responseByteArray = new byte[stunHeaderBytes.Length + dataIndicationBytes.Length + fingerprintLength];
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
         byte[] fingerprintByteArray = fingerprint.ToBytes();
-        ByteArrayUtils.MergeByteArray(ref responseByteArray, 0, stunHeaderBytes, dataIndicationBytes, fingerprintByteArray);
+        stunHeaderBytes.CopyTo(responseByteArray, 0);
+        dataIndicationBytes.CopyTo(responseByteArray, stunHeaderBytes.Length);
+        fingerprintByteArray.CopyTo(responseByteArray, stunHeaderBytes.Length + dataIndicationBytes.Length);
 
         return responseByteArray;
     }
 
     public override byte[] ToBytes()
     {
-        byte[] res = Array.Empty<byte>();
+        int totalLength = 0;
+        foreach (var a in Attributes)
+        {
+            totalLength += a.ToBytes().Length;
+        }
+        byte[] res = new byte[totalLength];
         int endPos = 0;
-        Attributes.ForEach(a =>
+        foreach (var a in Attributes)
         {
             byte[] data = a.ToBytes();
-            Array.Resize(ref res, res.Length + data.Length);
-            ByteArrayUtils.MergeByteArray(ref res, endPos, data);
+            data.CopyTo(res, endPos);
             endPos += data.Length;
-        });
-
+        }
         return res;
     }
 }
