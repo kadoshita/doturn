@@ -48,6 +48,22 @@ jobs:
       working-directory: test/Doturn.Test/
       timeout-minutes: 5
     - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
       working-directory: test/Doturn.Test/
       timeout-minutes: 5
+    - name: Generate coverage report
+      uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # 5.5.11
+      timeout-minutes: 5
+      with:
+        reports: test/Doturn.Test/coverage/**/coverage.cobertura.xml
+        targetdir: coveragereport
+        reporttypes: Html;MarkdownSummaryGithub
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      timeout-minutes: 5
+      with:
+        name: coverage-report
+        path: coveragereport
+    - name: Append coverage summary
+      run: cat coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+      timeout-minutes: 1
