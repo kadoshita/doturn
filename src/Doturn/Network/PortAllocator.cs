@@ -31,7 +31,7 @@ namespace Doturn.Network
             var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
             var udpEndpoints = ipGlobalProperties.GetActiveUdpListeners();
             var notAvailablePorts = udpEndpoints.Select(e => e.Port);
-            var port = (ushort)Enumerable.Range(_options.Value.MinPort, _options.Value.MaxPort).Except(notAvailablePorts).FirstOrDefault();
+            var port = (ushort)Enumerable.Range(_options.Value.MinPort, _options.Value.MaxPort - _options.Value.MinPort + 1).Except(notAvailablePorts).FirstOrDefault();
             _logger.LogDebug("GetPort: {port}", port);
             return port;
         }

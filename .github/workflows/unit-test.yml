@@ -4,26 +4,66 @@ on:
   push:
     paths:
       - '**.cs'
+      - '**.csproj'
+      - 'global.json'
       - '**.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '**.cs'
+      - '**.csproj'
+      - 'global.json'
+      - '**.yml'
+
+permissions:
+  contents: read
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      timeout-minutes: 5
     - name: Setup .NET
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+      timeout-minutes: 5
       with:
-        dotnet-version: 6.0.x
+        global-json-file: global.json
     - name: Restore dependencies
       run: dotnet restore
       working-directory: src/Doturn/
+      timeout-minutes: 5
     - name: Copy settings file
       run: cp appsettings.sample.json appsettings.json
       working-directory: src/Doturn
+      timeout-minutes: 1
     - name: Build
       run: dotnet build --no-restore
       working-directory: src/Doturn/
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      timeout-minutes: 5
+    - name: Restore test dependencies
+      run: dotnet restore
       working-directory: test/Doturn.Test/
+      timeout-minutes: 5
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      working-directory: test/Doturn.Test/
+      timeout-minutes: 5
+    - name: Generate coverage report
+      uses: danielpalme/ReportGenerator-GitHub-Action@d3ebf1f760f7d8ab92cc44d9bcfee7ad73722a31 # 5.5.11
+      timeout-minutes: 5
+      with:
+        reports: test/Doturn.Test/coverage/**/coverage.cobertura.xml
+        targetdir: coveragereport
+        reporttypes: Html;MarkdownSummaryGithub
+    - name: Upload coverage report artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      timeout-minutes: 5
+      with:
+        name: coverage-report
+        path: coveragereport
+    - name: Append coverage summary
+      run: cat coveragereport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+      timeout-minutes: 1
