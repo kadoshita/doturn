@@ -2,21 +2,9 @@ name: TURN E2E Test (send)
 
 on:
   push:
-    paths:
-      - '**.cs'
-      - '**.csproj'
-      - 'global.json'
-      - '**.yml'
-      - '**.py'
   pull_request:
     branches:
       - master
-    paths:
-      - '**.cs'
-      - '**.csproj'
-      - 'global.json'
-      - '**.yml'
-      - '**.py'
 
 permissions:
   contents: read

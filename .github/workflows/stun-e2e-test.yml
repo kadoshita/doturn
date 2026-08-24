@@ -2,19 +2,9 @@ name: STUN E2E Test
 
 on:
   push:
-    paths:
-      - '**.cs'
-      - '**.csproj'
-      - 'global.json'
-      - '**.yml'
   pull_request:
     branches:
       - master
-    paths:
-      - '**.cs'
-      - '**.csproj'
-      - 'global.json'
-      - '**.yml'
 
 permissions:
   contents: read

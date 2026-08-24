@@ -25,7 +25,7 @@ public class PortAllocatorTest
             MaxPort = 65535
         };
         var options = Options.Create(appSettings);
-        var portAllocator = new PortAllocator(logger, options, connectionManager);
+        var portAllocator = new PortAllocator(logger, options);
 
         ushort port = portAllocator.GetPort();
 
@@ -44,7 +44,7 @@ public class PortAllocatorTest
             MaxPort = 61234
         };
         var options = Options.Create(appSettings);
-        var portAllocator = new PortAllocator(logger, options, connectionManager);
+        var portAllocator = new PortAllocator(logger, options);
 
         ushort port = portAllocator.GetPort();
 

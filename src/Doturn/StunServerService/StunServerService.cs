@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Net;
 using System.Net.Sockets;
@@ -14,6 +15,7 @@ namespace Doturn.StunServerService;
 public interface IStunServerService
 {
     UdpClient Client { get; }
+    ushort ListenPort { get; }
 }
 public class StunServerService : BackgroundService, IStunServerService
 {
@@ -54,36 +56,58 @@ public class StunServerService : BackgroundService, IStunServerService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogDebug("Listening on {ListenPort}", ListenPort);
-        while (!stoppingToken.IsCancellationRequested)
+        Socket socket = _client.Client;
+        var socketAddress = new SocketAddress(socket.AddressFamily);
+        var endpointTemplate = new IPEndPoint(IPAddress.Any, 0);
+        byte[] rentedBuffer = ArrayPool<byte>.Shared.Rent(2048);
+        try
         {
-            UdpReceiveResult data;
-            try
+            while (!stoppingToken.IsCancellationRequested)
             {
-                data = await _client.ReceiveAsync(stoppingToken);
-            }
-            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
+                int receivedBytes;
+                IPEndPoint remoteEndpoint;
+                try
+                {
+                    receivedBytes = await socket.ReceiveFromAsync(rentedBuffer, SocketFlags.None, socketAddress, stoppingToken);
+                    remoteEndpoint = (IPEndPoint)endpointTemplate.Create(socketAddress);
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (SocketException)
+                {
+                    // Socket closed or transient error; continue receive loop.
+                    continue;
+                }
 
-            if (data.Buffer.Length < 20)
-            {
-                _logger.LogDebug("Unknown data received");
-                continue;
-            }
+                if (receivedBytes < 20)
+                {
+                    _logger.LogDebug("Unknown data received");
+                    continue;
+                }
 
-            try
-            {
-                await HandleDatagramAsync(data, stoppingToken);
+                byte[] payload = new byte[receivedBytes];
+                rentedBuffer.AsSpan(0, receivedBytes).CopyTo(payload);
+                var data = new UdpReceiveResult(payload, remoteEndpoint);
+
+                try
+                {
+                    await HandleDatagramAsync(data, stoppingToken);
+                }
+                catch (StunMessage.StunMessageParseException)
+                {
+                    _logger.LogDebug("Unknown data received");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e, "Unhandled exception in receive loop");
+                }
             }
-            catch (StunMessage.StunMessageParseException)
-            {
-                _logger.LogDebug("Unknown data received");
-            }
-            catch (Exception e)
-            {
-                _logger.LogWarning(e, "Unhandled exception in receive loop");
-            }
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(rentedBuffer);
         }
     }
 
