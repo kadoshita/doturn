@@ -31,7 +31,7 @@ public class ConnectionManagerTest : IDisposable
     {
         var connectionManager = new ConnectionManager(logger);
         connectionManager.SetMainClient(client);
-        Assert.Equal(client, connectionManager.mainClient);
+        Assert.Equal(client, connectionManager.MainClient);
     }
 
     [Fact]

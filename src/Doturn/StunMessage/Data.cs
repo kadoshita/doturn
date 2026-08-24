@@ -7,7 +7,7 @@ namespace Doturn.StunMessage;
 
 public class Data : StunMessageBase
 {
-    public readonly List<IStunAttribute> attributes = new();
+    public List<IStunAttribute> Attributes { get; } = new();
 
     public override Type Type { get; }
     public Data(byte[] data)
@@ -15,7 +15,7 @@ public class Data : StunMessageBase
         Type = Type.DataIndication;
         var dataAttribute = new StunAttribute.Data(data);
         //TODO 必要なattributeが揃っているかチェックする
-        attributes.Add(dataAttribute);
+        Attributes.Add(dataAttribute);
     }
 
     public byte[] CreateDataIndication(IPEndPoint peer)
@@ -23,7 +23,7 @@ public class Data : StunMessageBase
         int fingerprintLength = 8;
 
         var xorPeerAddress = new XorPeerAddress(peer);
-        attributes.Add(xorPeerAddress);
+        Attributes.Add(xorPeerAddress);
         byte[] dataIndicationBytes = ToBytes();
         var random = new Random();
         byte[] transactionIdBytes = new byte[12];
@@ -43,7 +43,7 @@ public class Data : StunMessageBase
     {
         byte[] res = Array.Empty<byte>();
         int endPos = 0;
-        attributes.ForEach(a =>
+        Attributes.ForEach(a =>
         {
             byte[] data = a.ToBytes();
             Array.Resize(ref res, res.Length + data.Length);

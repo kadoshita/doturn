@@ -42,7 +42,7 @@ public class CreatePermissionTest
     {
         var createPermissionRequest = new CreatePermission(_magicCookie, _transactionId, _createPermissionRequestByteArray, _appSettings);
         byte[] convertedcreatePermissionRequestByteArray = createPermissionRequest.ToBytes();
-        _ = (StunAttribute.XorPeerAddress)createPermissionRequest.attributes[0];
+        _ = (StunAttribute.XorPeerAddress)createPermissionRequest.Attributes[0];
         Assert.Equal(_createPermissionRequestByteArray, convertedcreatePermissionRequestByteArray);
     }
 

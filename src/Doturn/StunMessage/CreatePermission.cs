@@ -7,8 +7,8 @@ namespace Doturn.StunMessage;
 public class CreatePermission : StunMessageBase
 {
     private readonly byte[] _magicCookie;
-    public readonly byte[] transactionId;
-    public readonly List<IStunAttribute> attributes = new();
+    public byte[] TransactionId { get; }
+    public List<IStunAttribute> Attributes { get; } = new();
     private readonly IAppSettings _appSettings;
     public override Type Type { get; }
 
@@ -16,18 +16,18 @@ public class CreatePermission : StunMessageBase
     {
         Type = Type.CreatePermission;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        attributes = StunAttributeParser.Parse(data);
+        Attributes.AddRange(StunAttributeParser.Parse(data));
         _appSettings = appSettings;
     }
     public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
         Type = isSuccess ? Type.CreatePermissionSuccess : Type.CreatePermissionError;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        this.attributes = attributes;
+        Attributes = attributes;
         _appSettings = appSettings;
     }
     public byte[] CreateSuccessResponse()
@@ -38,18 +38,18 @@ public class CreatePermission : StunMessageBase
         List<IStunAttribute> attributes = new();
         var software = new Software();
         attributes.Add(software);
-        var tmpCreatePermissionSuccessResponse = new CreatePermission(_magicCookie, transactionId, attributes, true, _appSettings);
+        var tmpCreatePermissionSuccessResponse = new CreatePermission(_magicCookie, TransactionId, attributes, true, _appSettings);
         byte[] tmpCreatePermissionSuccessResponseByteArray = tmpCreatePermissionSuccessResponse.ToBytes();
 
 
-        var tmpStunHeader = new StunHeader(Type.CreatePermissionSuccess, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
+        var tmpStunHeader = new StunHeader(Type.CreatePermissionSuccess, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), TransactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintLength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray);
         var messageIntegrity = new MessageIntegrity(_appSettings.Username, _appSettings.Password, _appSettings.Realm, responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintLength))]);
         byte[] messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-        var stunHeader = new StunHeader(Type.CreatePermissionSuccess, (short)(tmpStunHeader.MessageLength + fingerprintLength), transactionId);
+        var stunHeader = new StunHeader(Type.CreatePermissionSuccess, (short)(tmpStunHeader.MessageLength + fingerprintLength), TransactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray, messageIntegrityByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
@@ -64,15 +64,15 @@ public class CreatePermission : StunMessageBase
         List<IStunAttribute> attributes = new();
         var software = new Software();
         attributes.Add(software);
-        var tmpCreatePermissionErrorResponse = new CreatePermission(_magicCookie, transactionId, attributes, false, _appSettings);
+        var tmpCreatePermissionErrorResponse = new CreatePermission(_magicCookie, TransactionId, attributes, false, _appSettings);
         byte[] tmpCreatePermissionErrorResponseByteArray = tmpCreatePermissionErrorResponse.ToBytes();
 
-        var tmpStunHeader = new StunHeader(Type.CreatePermissionError, (short)tmpCreatePermissionErrorResponseByteArray.Length, transactionId);
+        var tmpStunHeader = new StunHeader(Type.CreatePermissionError, (short)tmpCreatePermissionErrorResponseByteArray.Length, TransactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionErrorResponseByteArray.Length + fingerprintlength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
 
-        var stunHeader = new StunHeader(Type.CreatePermissionError, (short)(tmpStunHeader.MessageLength + fingerprintlength), transactionId);
+        var stunHeader = new StunHeader(Type.CreatePermissionError, (short)(tmpStunHeader.MessageLength + fingerprintlength), TransactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
@@ -82,16 +82,19 @@ public class CreatePermission : StunMessageBase
     }
     public override byte[] ToBytes()
     {
-        byte[] res = Array.Empty<byte>();
+        int totalLength = 0;
+        foreach (var a in Attributes)
+        {
+            totalLength += a.ToBytes().Length;
+        }
+        byte[] res = new byte[totalLength];
         int endPos = 0;
-        attributes.ForEach(a =>
+        foreach (var a in Attributes)
         {
             byte[] data = a.ToBytes();
-            Array.Resize(ref res, res.Length + data.Length);
-            ByteArrayUtils.MergeByteArray(ref res, endPos, data);
+            data.CopyTo(res, endPos);
             endPos += data.Length;
-        });
-
+        }
         return res;
     }
 }

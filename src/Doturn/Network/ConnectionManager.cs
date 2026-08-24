@@ -43,26 +43,24 @@ public interface IConnectionManager
 public class ConnectionManager(ILogger<ConnectionManager> logger) : IConnectionManager
 {
     // TODO Dictionaryを使う
-    public readonly List<ConnectionEntry> _entries = new();
+    private readonly List<ConnectionEntry> _entries = new();
     private readonly ILogger<ConnectionManager> _logger = logger;
+    private UdpClient? _mainClient;
 
-    public UdpClient? mainClient;
+    public UdpClient? MainClient => _mainClient;
 
     public void SetMainClient(UdpClient client)
     {
-        if (mainClient == null)
-        {
-            mainClient = client;
-        }
+        _mainClient ??= client;
     }
 
     public Task<int> SendMainClientAsync(byte[] data, int length, IPEndPoint endpoint)
     {
-        if (mainClient == null)
+        if (_mainClient == null)
         {
-            throw new InvalidOperationException("mainClient has not been set");
+            throw new InvalidOperationException("MainClient has not been set");
         }
-        return mainClient.SendAsync(data, length, endpoint);
+        return _mainClient.SendAsync(data, length, endpoint);
     }
     public void AddConnectionEntry(ConnectionEntry entry)
     {
@@ -146,10 +144,10 @@ public class ConnectionManager(ILogger<ConnectionManager> logger) : IConnectionM
         var entry = _entries.Find(e => e.Client.Equals(client));
         if (entry != null)
         {
-            if (entry.RelayService != null && entry.RelayService._client != null)
+            if (entry.RelayService != null && entry.RelayService.Client != null)
             {
                 _logger.LogDebug("Close connection");
-                entry.RelayService._client.Close();
+                entry.RelayService.Client.Close();
             }
             _entries.Remove(entry);
         }

@@ -40,9 +40,9 @@ public class StunServerServiceTest
 
         var service = new StunServerService(_logger, options, connectionManagerMock.Object, _portAllocator);
 
-        Assert.Equal(_appSettings.ListeningPort, service.listenPort);
+        Assert.Equal(_appSettings.ListeningPort, service.ListenPort);
         connectionManagerMock.Verify(m => m.SetMainClient(It.IsAny<UdpClient>()), Times.Once);
-        Assert.NotNull(((IStunServerService)service)._client);
+        Assert.NotNull(((IStunServerService)service).Client);
     }
 
     [Fact]
@@ -54,9 +54,9 @@ public class StunServerServiceTest
 
         var service = new StunServerService(_logger, options, connectionManagerMock.Object, _portAllocator, explicitPort);
 
-        Assert.Equal(explicitPort, service.listenPort);
+        Assert.Equal(explicitPort, service.ListenPort);
         connectionManagerMock.Verify(m => m.SetMainClient(It.IsAny<UdpClient>()), Times.Never);
-        Assert.NotNull(((IStunServerService)service)._client);
+        Assert.NotNull(((IStunServerService)service).Client);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class StunServerServiceTest
         var connectionManager = Mock.Of<IConnectionManager>();
         var options = Options.Create(_appSettings);
         var service = new StunServerService(_logger, options, connectionManager, _portAllocator);
-        int boundPort = ((IPEndPoint)((IStunServerService)service)._client.Client.LocalEndPoint!).Port;
+        int boundPort = ((IPEndPoint)((IStunServerService)service).Client.Client.LocalEndPoint!).Port;
 
         // BackgroundService.StartAsync begins running ExecuteAsync on a background task.
         _ = service.StartAsync(default);

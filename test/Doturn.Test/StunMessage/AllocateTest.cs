@@ -49,12 +49,12 @@ public class AllocateTest
         var allocateRequest = new Allocate(_magicCookie, _transactionId, _allocateRequestByteArray, _appSettings);
         byte[] convertedAllocateRequestByteArray = allocateRequest.ToBytes();
 
-        var requestedTransport = (StunAttribute.RequestedTransport)allocateRequest.attributes[0];
-        var username = (StunAttribute.Username)allocateRequest.attributes[1];
-        var realm = (StunAttribute.Realm)allocateRequest.attributes[2];
-        var nonce = (StunAttribute.Nonce)allocateRequest.attributes[3];
-        var messageIntegrity = (StunAttribute.MessageIntegrity)allocateRequest.attributes[4];
-        var fingerprint = (StunAttribute.Fingerprint)allocateRequest.attributes[5];
+        var requestedTransport = (StunAttribute.RequestedTransport)allocateRequest.Attributes[0];
+        var username = (StunAttribute.Username)allocateRequest.Attributes[1];
+        var realm = (StunAttribute.Realm)allocateRequest.Attributes[2];
+        var nonce = (StunAttribute.Nonce)allocateRequest.Attributes[3];
+        var messageIntegrity = (StunAttribute.MessageIntegrity)allocateRequest.Attributes[4];
+        var fingerprint = (StunAttribute.Fingerprint)allocateRequest.Attributes[5];
         Assert.Equal(StunAttribute.Type.RequestedTransport, requestedTransport.Type);
         Assert.Equal(StunAttribute.Transport.Udp, requestedTransport.Value);
         Assert.Equal(StunAttribute.Type.Username, username.Type);
