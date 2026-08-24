@@ -1,6 +1,3 @@
-
-using System;
-
 namespace Doturn.StunAttribute
 {
     public enum Transport
@@ -12,7 +9,7 @@ namespace Doturn.StunAttribute
     {
         public static byte[] ToBytes(this Transport transport)
         {
-            byte[] res = { BitConverter.GetBytes((byte)transport)[0] };
+            byte[] res = { (byte)transport };
             return res;
         }
     }
