@@ -31,6 +31,14 @@ namespace Doturn.StunMessage.Test
         private readonly byte[] _unknownRequestBytes = new byte[] {
             0xFF, 0xFF, 0x00, 0x00, 0x21, 0x12, 0xa4, 0x42, 0x54, 0x45, 0x53, 0x54, 0x54, 0x45, 0x53, 0x54, 0x54, 0x45, 0x53, 0x54 // header
         };
+        private readonly byte[] _sendIndicationRequestBytes = new byte[] {
+            0x00, 0x16, 0x00, 0x0C, 0x21, 0x12, 0xa4, 0x42, 0x7a, 0x1b, 0x4f, 0x2f, 0x6b, 0x2f, 0x59, 0x37, 0xa8, 0x85, 0xec, 0x0c, // header
+            0x00, 0x13, 0x00, 0x08, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 // data
+        };
+        private readonly byte[] _channelBindRequestBytes = new byte[] {
+            0x00, 0x09, 0x00, 0x08, 0x21, 0x12, 0xa4, 0x42, 0x7a, 0x1b, 0x4f, 0x2f, 0x6b, 0x2f, 0x59, 0x37, 0xa8, 0x85, 0xec, 0x0c, // header
+            0x00, 0x0C, 0x00, 0x04, 0x40, 0x00, 0x00, 0x00 // channel number
+        };
 
         private readonly IAppSettings _appSettings = new AppSettings()
         {
@@ -69,6 +77,20 @@ namespace Doturn.StunMessage.Test
         {
             IStunMessage result = StunMessageParser.Parse(_refreshRequestBytes, _appSettings);
             Assert.Equal(Type.REFRESH, result.Type);
+        }
+
+        [Fact]
+        public void Parse_Send_Indication_Request()
+        {
+            IStunMessage result = StunMessageParser.Parse(_sendIndicationRequestBytes, _appSettings);
+            Assert.Equal(Type.SEND_INDICATION, result.Type);
+        }
+
+        [Fact]
+        public void Parse_ChannelBind_Request()
+        {
+            IStunMessage result = StunMessageParser.Parse(_channelBindRequestBytes, _appSettings);
+            Assert.Equal(Type.CHANNEL_BIND, result.Type);
         }
 
         [Fact]
