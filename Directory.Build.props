@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -11,10 +11,11 @@
     <!--
       恒久的に無効化:
         CA1848 (LoggerMessage delegates) — LoggerMessage 生成器は導入しない方針
+        CA1873 (IsEnabled ガードで高価な引数評価を回避) — CA1848 無効化と同方針。ホットパスは個別に IsEnabled で対処済み
         CA5350/CA5351 (weak/broken crypto: HMACSHA1/MD5) — STUN/TURN 仕様要件
         CA1711 (type name ends with reserved suffix) — StunAttribute / CreatePermission は仕様用語
     -->
-    <NoWarn>$(NoWarn);CA1848;CA5350;CA5351;CA1711</NoWarn>
+    <NoWarn>$(NoWarn);CA1848;CA1873;CA5350;CA5351;CA1711</NoWarn>
   </PropertyGroup>
 
 </Project>
