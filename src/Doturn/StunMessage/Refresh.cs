@@ -6,30 +6,29 @@ namespace Doturn.StunMessage;
 
 public class Refresh : StunMessageBase
 {
-    public readonly Type type;
     private readonly byte[] _magicCookie;
-    public readonly byte[] transactionId;
-    public readonly List<IStunAttribute> attributes = new();
+    public byte[] TransactionId { get; }
+    public List<IStunAttribute> Attributes { get; } = new();
     private readonly IAppSettings _appSettings;
 
-    public override Type Type => type;
+    public override Type Type { get; }
 
     public Refresh(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
     {
-        type = Type.REFRESH;
+        Type = Type.Refresh;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        attributes = StunAttributeParser.Parse(data);
+        Attributes.AddRange(StunAttributeParser.Parse(data));
         _appSettings = appSettings;
     }
     public Refresh(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
-        type = isSuccess ? Type.REFRESH_SUCCESS : Type.REFRESH_ERROR;
+        Type = isSuccess ? Type.RefreshSuccess : Type.RefreshError;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        this.attributes = attributes;
+        Attributes = attributes;
         _appSettings = appSettings;
     }
     public byte[] CreateSuccessResponse()
@@ -46,17 +45,17 @@ public class Refresh : StunMessageBase
         attributes.Add(lifetime);
         var software = new Software();
         attributes.Add(software);
-        var tmpRefreshSuccessResponse = new Refresh(_magicCookie, transactionId, attributes, true, _appSettings);
+        var tmpRefreshSuccessResponse = new Refresh(_magicCookie, TransactionId, attributes, true, _appSettings);
         byte[] tmpRefreshSuccessResponseByteArray = tmpRefreshSuccessResponse.ToBytes();
 
-        var tmpStunHeader = new StunHeader(Type.REFRESH_SUCCESS, (short)(tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
+        var tmpStunHeader = new StunHeader(Type.RefreshSuccess, (short)(tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength), TransactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpRefreshSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintlength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpRefreshSuccessResponseByteArray);
         var messageIntegrity = new MessageIntegrity(_appSettings.Username, _appSettings.Password, _appSettings.Realm, responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintlength))]);
         byte[] messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-        var stunHeader = new StunHeader(Type.REFRESH_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+        var stunHeader = new StunHeader(Type.RefreshSuccess, (short)(tmpStunHeader.MessageLength + fingerprintlength), TransactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpRefreshSuccessResponseByteArray, messageIntegrityByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
@@ -71,15 +70,15 @@ public class Refresh : StunMessageBase
         List<IStunAttribute> attributes = new();
         var software = new Software();
         attributes.Add(software);
-        var tmpRefreshErrorResponse = new Refresh(_magicCookie, transactionId, attributes, false, _appSettings);
+        var tmpRefreshErrorResponse = new Refresh(_magicCookie, TransactionId, attributes, false, _appSettings);
         byte[] tmpRefreshErrorResponseByteArray = tmpRefreshErrorResponse.ToBytes();
 
-        var tmpStunHeader = new StunHeader(Type.REFRESH_ERROR, (short)tmpRefreshErrorResponseByteArray.Length, transactionId);
+        var tmpStunHeader = new StunHeader(Type.RefreshError, (short)tmpRefreshErrorResponseByteArray.Length, TransactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpRefreshErrorResponseByteArray.Length + fingerprintlength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpRefreshErrorResponseByteArray);
 
-        var stunHeader = new StunHeader(Type.REFRESH_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+        var stunHeader = new StunHeader(Type.RefreshError, (short)(tmpStunHeader.MessageLength + fingerprintlength), TransactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpRefreshErrorResponseByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
@@ -89,16 +88,19 @@ public class Refresh : StunMessageBase
     }
     public override byte[] ToBytes()
     {
-        byte[] res = Array.Empty<byte>();
+        int totalLength = 0;
+        foreach (var a in Attributes)
+        {
+            totalLength += a.ToBytes().Length;
+        }
+        byte[] res = new byte[totalLength];
         int endPos = 0;
-        attributes.ForEach(a =>
+        foreach (var a in Attributes)
         {
             byte[] data = a.ToBytes();
-            Array.Resize(ref res, res.Length + data.Length);
-            ByteArrayUtils.MergeByteArray(ref res, endPos, data);
+            data.CopyTo(res, endPos);
             endPos += data.Length;
-        });
-
+        }
         return res;
     }
 }

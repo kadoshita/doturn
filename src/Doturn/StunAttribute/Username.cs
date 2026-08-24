@@ -1,4 +1,6 @@
 using System;
+using System.Buffers.Binary;
+using System.Text;
 
 namespace Doturn.StunAttribute;
 
@@ -8,9 +10,8 @@ public class UsernameIsEmptyException : Exception
 }
 public class Username : StunAttributeBase
 {
-    public readonly Type type = Type.USERNAME;
-    public readonly string username;
-    public override Type Type => type;
+    public string Value { get; }
+    public override Type Type => Type.Username;
 
     public Username(string username)
     {
@@ -18,26 +19,22 @@ public class Username : StunAttributeBase
         {
             throw new UsernameIsEmptyException();
         }
-        this.username = username;
+        Value = username;
     }
 
     public override byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
-        byte[] usernameByteArray = System.Text.Encoding.ASCII.GetBytes(username);
+        byte[] usernameByteArray = Encoding.ASCII.GetBytes(Value);
         int length = usernameByteArray.Length;
-        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(lengthByteArray);
-        }
         byte[] res = new byte[2 + 2 + length];
-        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, usernameByteArray);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(0, 2), (ushort)Type);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(2, 2), (ushort)length);
+        usernameByteArray.CopyTo(res, 4);
         return res;
     }
     public static Username Parse(byte[] data)
     {
-        string usernameStr = System.Text.Encoding.ASCII.GetString(data);
+        string usernameStr = Encoding.ASCII.GetString(data);
         return new Username(usernameStr);
     }
 }

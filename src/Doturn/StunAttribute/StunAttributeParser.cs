@@ -23,21 +23,21 @@ public static class StunAttributeParser
             var attrType = (Type)Enum.ToObject(typeof(Type), BitConverter.ToUInt16(attrTypeByteArray));
             ushort attrLength = BitConverter.ToUInt16(attrLengthByteArray);
 
-            if (attrType == Type.REQUESTED_TRANSPORT)
+            if (attrType == Type.RequestedTransport)
             {
                 byte[] transportByteArray = data[endPos..(attrLength + endPos)];
                 endPos += transportByteArray.Length;
                 var requestedTransport = RequestedTransport.Parse(transportByteArray);
                 attributes.Add(requestedTransport);
             }
-            else if (attrType == Type.USERNAME)
+            else if (attrType == Type.Username)
             {
                 byte[] usernameByteArray = data[endPos..(attrLength + endPos)];
                 endPos += usernameByteArray.Length;
                 var username = Username.Parse(usernameByteArray);
                 attributes.Add(username);
             }
-            else if (attrType == Type.REALM)
+            else if (attrType == Type.Realm)
             {
                 byte[] realmByteArray = data[endPos..(attrLength + endPos)];
                 endPos += realmByteArray.Length;
@@ -46,21 +46,21 @@ public static class StunAttributeParser
                 var realm = Realm.Parse(realmByteArray);
                 attributes.Add(realm);
             }
-            else if (attrType == Type.NONCE)
+            else if (attrType == Type.Nonce)
             {
                 byte[] nonceByteArray = data[endPos..(attrLength + endPos)];
                 endPos += nonceByteArray.Length;
                 var nonce = Nonce.Parse(nonceByteArray);
                 attributes.Add(nonce);
             }
-            else if (attrType == Type.MESSAGE_INTEGRITY)
+            else if (attrType == Type.MessageIntegrity)
             {
                 byte[] messageIntegrityByteArray = data[endPos..(attrLength + endPos)];
                 endPos += messageIntegrityByteArray.Length;
                 var messageIntegrity = MessageIntegrity.Parse(messageIntegrityByteArray);
                 attributes.Add(messageIntegrity);
             }
-            else if (attrType == Type.ERROR_CODE)
+            else if (attrType == Type.ErrorCode)
             {
                 byte[] errorCodeByteArray = data[endPos..(attrLength + endPos)];
                 endPos += errorCodeByteArray.Length;
@@ -68,56 +68,56 @@ public static class StunAttributeParser
                 attributes.Add(errorCode);
 
             }
-            else if (attrType == Type.FINGERPRINT)
+            else if (attrType == Type.Fingerprint)
             {
                 byte[] fingerprintByteArray = data[endPos..(attrLength + endPos)];
                 endPos += fingerprintByteArray.Length;
                 var fingerprint = Fingerprint.Parse(fingerprintByteArray);
                 attributes.Add(fingerprint);
             }
-            else if (attrType == Type.LIFETIME)
+            else if (attrType == Type.Lifetime)
             {
                 byte[] lifetimeByteArray = data[endPos..(attrLength + endPos)];
                 endPos += lifetimeByteArray.Length;
                 var lifetime = Lifetime.Parse(lifetimeByteArray);
                 attributes.Add(lifetime);
             }
-            else if (attrType == Type.MAPPED_ADDRESS)
+            else if (attrType == Type.MappedAddress)
             {
                 byte[] mappedAddressByteArray = data[endPos..(attrLength + endPos)];
                 endPos += mappedAddressByteArray.Length;
                 IStunAttribute mappedAddress = MappedAddress.Parse(mappedAddressByteArray);
                 attributes.Add(mappedAddress);
             }
-            else if (attrType == Type.SOFTWARE)
+            else if (attrType == Type.Software)
             {
                 byte[] softwareByteArray = data[endPos..(attrLength + endPos)];
                 endPos += softwareByteArray.Length;
                 var software = Software.Parse(softwareByteArray);
                 attributes.Add(software);
             }
-            else if (attrType == Type.XOR_MAPPED_ADDRESS)
+            else if (attrType == Type.XorMappedAddress)
             {
                 byte[] xorMappedAddressByteArray = data[endPos..(attrLength + endPos)];
                 endPos += xorMappedAddressByteArray.Length;
                 var xorMappedAddress = XorMappedAddress.Parse(xorMappedAddressByteArray);
                 attributes.Add(xorMappedAddress);
             }
-            else if (attrType == Type.XOR_PEER_ADDRESS)
+            else if (attrType == Type.XorPeerAddress)
             {
                 byte[] xorPeerAddressByteArray = data[endPos..(attrLength + endPos)];
                 endPos += xorPeerAddressByteArray.Length;
                 var xorPeerAddress = XorPeerAddress.Parse(xorPeerAddressByteArray);
                 attributes.Add(xorPeerAddress);
             }
-            else if (attrType == Type.XOR_RELAYED_ADDRESS)
+            else if (attrType == Type.XorRelayedAddress)
             {
                 byte[] xorRelayedAddressByteArray = data[endPos..(attrLength + endPos)];
                 endPos += xorRelayedAddressByteArray.Length;
                 var xorRelayedAddress = XorRelayedAddress.Parse(xorRelayedAddressByteArray);
                 attributes.Add(xorRelayedAddress);
             }
-            else if (attrType == Type.DATA)
+            else if (attrType == Type.Data)
             {
                 byte[] dataByteArray = data[endPos..(attrLength + endPos)];
                 endPos += dataByteArray.Length;
@@ -126,7 +126,7 @@ public static class StunAttributeParser
                 var dataAttribute = Data.Parse(dataByteArray);
                 attributes.Add(dataAttribute);
             }
-            else if (attrType == Type.CHANNEL_NUMBER)
+            else if (attrType == Type.ChannelNumber)
             {
                 byte[] channelNumberByteArray = data[endPos..(attrLength + endPos)];
                 endPos += channelNumberByteArray.Length;

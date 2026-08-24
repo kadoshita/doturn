@@ -6,53 +6,55 @@ namespace Doturn.StunMessage;
 
 public class ChannelBind : StunMessageBase
 {
-    public readonly Type type;
     private readonly byte[] _magicCookie;
-    public readonly byte[] transactionId;
-    public readonly List<IStunAttribute> attributes = new();
+    public byte[] TransactionId { get; }
+    public List<IStunAttribute> Attributes { get; } = new();
     private readonly IAppSettings _appSettings;
-    public override Type Type => type;
+    public override Type Type { get; }
 
     public ChannelBind(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
     {
-        type = Type.CHANNEL_BIND;
+        Type = Type.ChannelBind;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        attributes = StunAttributeParser.Parse(data);
+        Attributes.AddRange(StunAttributeParser.Parse(data));
         _appSettings = appSettings;
     }
     public ChannelBind(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
-        type = isSuccess ? Type.CHANNEL_BIND_SUCCESS : Type.CHANNEL_BIND_ERROR;
+        Type = isSuccess ? Type.ChannelBindSuccess : Type.ChannelBindError;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        this.attributes = attributes;
+        Attributes = attributes;
         _appSettings = appSettings;
     }
     public byte[] CreateSuccessResponse()
     {
-        var stunHeader = new StunHeader(Type.CHANNEL_BIND_SUCCESS, 0, transactionId);
+        var stunHeader = new StunHeader(Type.ChannelBindSuccess, 0, TransactionId);
         return stunHeader.ToBytes();
     }
     public byte[] CreateErrorResponse()
     {
-        var stunHeader = new StunHeader(Type.CHANNEL_BIND_ERROR, 0, transactionId);
+        var stunHeader = new StunHeader(Type.ChannelBindError, 0, TransactionId);
         return stunHeader.ToBytes();
     }
     public override byte[] ToBytes()
     {
-        byte[] res = Array.Empty<byte>();
+        int totalLength = 0;
+        foreach (var a in Attributes)
+        {
+            totalLength += a.ToBytes().Length;
+        }
+        byte[] res = new byte[totalLength];
         int endPos = 0;
-        attributes.ForEach(a =>
+        foreach (var a in Attributes)
         {
             byte[] data = a.ToBytes();
-            Array.Resize(ref res, res.Length + data.Length);
-            ByteArrayUtils.MergeByteArray(ref res, endPos, data);
+            data.CopyTo(res, endPos);
             endPos += data.Length;
-        });
-
+        }
         return res;
     }
 }

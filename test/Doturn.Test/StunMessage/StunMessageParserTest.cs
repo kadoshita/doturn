@@ -55,42 +55,42 @@ public class StunMessageParserTest
     public void Parse_Binding_Request()
     {
         IStunMessage result = StunMessageParser.Parse(_bindingRequestBytes, _appSettings);
-        Assert.Equal(Type.BINDING, result.Type);
+        Assert.Equal(Type.Binding, result.Type);
     }
 
     [Fact]
     public void Parse_Allocate_Request()
     {
         IStunMessage result = StunMessageParser.Parse(_allocateRequestBytes, _appSettings);
-        Assert.Equal(Type.ALLOCATE, result.Type);
+        Assert.Equal(Type.Allocate, result.Type);
     }
 
     [Fact]
     public void Parse_CreatePermission_Request()
     {
         IStunMessage result = StunMessageParser.Parse(_createPermissionRequestBytes, _appSettings);
-        Assert.Equal(Type.CREATE_PERMISSION, result.Type);
+        Assert.Equal(Type.CreatePermission, result.Type);
     }
 
     [Fact]
     public void Parse_Refresh_Request()
     {
         IStunMessage result = StunMessageParser.Parse(_refreshRequestBytes, _appSettings);
-        Assert.Equal(Type.REFRESH, result.Type);
+        Assert.Equal(Type.Refresh, result.Type);
     }
 
     [Fact]
     public void Parse_Send_Indication_Request()
     {
         IStunMessage result = StunMessageParser.Parse(_sendIndicationRequestBytes, _appSettings);
-        Assert.Equal(Type.SEND_INDICATION, result.Type);
+        Assert.Equal(Type.SendIndication, result.Type);
     }
 
     [Fact]
     public void Parse_ChannelBind_Request()
     {
         IStunMessage result = StunMessageParser.Parse(_channelBindRequestBytes, _appSettings);
-        Assert.Equal(Type.CHANNEL_BIND, result.Type);
+        Assert.Equal(Type.ChannelBind, result.Type);
     }
 
     [Fact]

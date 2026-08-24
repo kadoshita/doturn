@@ -7,16 +7,15 @@ namespace Doturn.StunMessage;
 
 public class Data : StunMessageBase
 {
-    public readonly Type type;
-    public readonly List<IStunAttribute> attributes = new();
+    public List<IStunAttribute> Attributes { get; } = new();
 
-    public override Type Type => type;
+    public override Type Type { get; }
     public Data(byte[] data)
     {
-        type = Type.DATA_INDICATION;
+        Type = Type.DataIndication;
         var dataAttribute = new StunAttribute.Data(data);
         //TODO 必要なattributeが揃っているかチェックする
-        attributes.Add(dataAttribute);
+        Attributes.Add(dataAttribute);
     }
 
     public byte[] CreateDataIndication(IPEndPoint peer)
@@ -24,13 +23,13 @@ public class Data : StunMessageBase
         int fingerprintLength = 8;
 
         var xorPeerAddress = new XorPeerAddress(peer);
-        attributes.Add(xorPeerAddress);
+        Attributes.Add(xorPeerAddress);
         byte[] dataIndicationBytes = ToBytes();
         var random = new Random();
         byte[] transactionIdBytes = new byte[12];
         random.NextBytes(transactionIdBytes);
 
-        var stunHeader = new StunHeader(Type.DATA_INDICATION, (short)(dataIndicationBytes.Length + fingerprintLength), transactionIdBytes);
+        var stunHeader = new StunHeader(Type.DataIndication, (short)(dataIndicationBytes.Length + fingerprintLength), transactionIdBytes);
         byte[] stunHeaderBytes = stunHeader.ToBytes();
         byte[] responseByteArray = new byte[stunHeaderBytes.Length + dataIndicationBytes.Length + fingerprintLength];
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
@@ -44,7 +43,7 @@ public class Data : StunMessageBase
     {
         byte[] res = Array.Empty<byte>();
         int endPos = 0;
-        attributes.ForEach(a =>
+        Attributes.ForEach(a =>
         {
             byte[] data = a.ToBytes();
             Array.Resize(ref res, res.Length + data.Length);

@@ -1,33 +1,29 @@
-using System;
+using System.Buffers.Binary;
 
 namespace Doturn.StunAttribute;
 
 public class ChannelNumber : StunAttributeBase
 {
-    public readonly Type type = Type.CHANNEL_NUMBER;
-    public readonly byte[] channelNumber = new byte[] { 0x00, 0x00 };
+    public byte[] Value { get; } = new byte[] { 0x00, 0x00 };
     private readonly byte[] _reserved = new byte[] { 0x00, 0x00 };
-    public override Type Type => type;
+    public override Type Type => Type.ChannelNumber;
 
     public ChannelNumber()
     {
     }
     public ChannelNumber(byte[] channelNumber, byte[] reserved)
     {
-        this.channelNumber = channelNumber;
+        Value = channelNumber;
         _reserved = reserved;
     }
     public override byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
-        int length = channelNumber.Length + _reserved.Length;
-        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(lengthByteArray);
-        }
+        int length = Value.Length + _reserved.Length;
         byte[] res = new byte[2 + 2 + length];
-        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, channelNumber, _reserved);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(0, 2), (ushort)Type);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(2, 2), (ushort)length);
+        Value.CopyTo(res, 4);
+        _reserved.CopyTo(res, 4 + Value.Length);
         return res;
     }
     public static ChannelNumber Parse(byte[] data)

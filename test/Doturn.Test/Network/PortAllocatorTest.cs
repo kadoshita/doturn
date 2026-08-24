@@ -7,12 +7,12 @@ namespace Doturn.Network.Test;
 
 public class PortAllocatorTest
 {
-    private readonly ILogger<StunServerService.StunServerService> logger;
+    private readonly ILogger<PortAllocator> logger;
     private readonly IConnectionManager connectionManager;
 
     public PortAllocatorTest()
     {
-        logger = Mock.Of<ILogger<StunServerService.StunServerService>>();
+        logger = Mock.Of<ILogger<PortAllocator>>();
         connectionManager = Mock.Of<IConnectionManager>();
     }
 

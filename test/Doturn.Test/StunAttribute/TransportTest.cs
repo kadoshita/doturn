@@ -6,8 +6,8 @@ namespace Doturn.StunAttribute.Test;
 public class TransportTest
 {
     [Theory]
-    [InlineData(StunAttribute.Transport.UDP, "11")]
-    [InlineData(StunAttribute.Transport.TCP, "06")]
+    [InlineData(StunAttribute.Transport.Udp, "11")]
+    [InlineData(StunAttribute.Transport.Tcp, "06")]
     public void Transport_Convert_To_ByteArray(StunAttribute.Transport transport, string byteArrayString)
     {
         byte[] byteArray = transport.ToBytes();

@@ -7,27 +7,26 @@ namespace Doturn.StunMessage;
 
 public class Binding : StunMessageBase
 {
-    public readonly Type type;
     private readonly byte[] _magicCookie;
-    public readonly byte[] transactionId;
-    public readonly List<IStunAttribute> attributes = new();
+    public byte[] TransactionId { get; }
+    public List<IStunAttribute> Attributes { get; } = new();
     private readonly IAppSettings _appSettings;
-    public override Type Type => type;
+    public override Type Type { get; }
 
     public Binding(byte[] magicCookie, byte[] transactionId, IAppSettings appSettings)
     {
-        type = Type.BINDING;
+        Type = Type.Binding;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         _appSettings = appSettings;
     }
     public Binding(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
-        type = isSuccess ? Type.BINDING_SUCCESS : Type.BINDING_ERROR;
+        Type = isSuccess ? Type.BindingSuccess : Type.BindingError;
         _magicCookie = magicCookie;
-        this.transactionId = transactionId;
+        TransactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
-        this.attributes = attributes;
+        Attributes = attributes;
         _appSettings = appSettings;
     }
     public byte[] CreateSuccessResponse(IPEndPoint endPoint)
@@ -45,15 +44,15 @@ public class Binding : StunMessageBase
             var attribute = new MappedAddress(endPoint);
             attributes.Add(attribute);
         }
-        var bindingSuccessResponse = new Binding(_magicCookie, transactionId, attributes, true, _appSettings);
+        var bindingSuccessResponse = new Binding(_magicCookie, TransactionId, attributes, true, _appSettings);
         byte[] bindingSuccessResponseByteArray = bindingSuccessResponse.ToBytes();
         if (isXor)
         {
-            stunHeader = new StunHeader(Type.BINDING_SUCCESS, (short)bindingSuccessResponseByteArray.Length, transactionId);
+            stunHeader = new StunHeader(Type.BindingSuccess, (short)bindingSuccessResponseByteArray.Length, TransactionId);
         }
         else
         {
-            stunHeader = new StunHeader(Type.BINDING_SUCCESS, (short)bindingSuccessResponseByteArray.Length, _magicCookie, transactionId);
+            stunHeader = new StunHeader(Type.BindingSuccess, (short)bindingSuccessResponseByteArray.Length, _magicCookie, TransactionId);
         }
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         byte[] responseByteArray = new byte[stunHeaderByteArray.Length + bindingSuccessResponseByteArray.Length];
@@ -62,9 +61,9 @@ public class Binding : StunMessageBase
     }
     public byte[] CreateErrorResponse()
     {
-        var bindingErrorResponse = new Binding(_magicCookie, transactionId, new List<IStunAttribute>(), false, _appSettings);
+        var bindingErrorResponse = new Binding(_magicCookie, TransactionId, new List<IStunAttribute>(), false, _appSettings);
         byte[] bindingErrorResponseByteArray = bindingErrorResponse.ToBytes();
-        var stunHeader = new StunHeader(Type.BINDING_ERROR, (short)bindingErrorResponseByteArray.Length, transactionId);
+        var stunHeader = new StunHeader(Type.BindingError, (short)bindingErrorResponseByteArray.Length, TransactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         byte[] responseByteArray = new byte[stunHeaderByteArray.Length + bindingErrorResponseByteArray.Length];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, bindingErrorResponseByteArray);
@@ -72,16 +71,19 @@ public class Binding : StunMessageBase
     }
     public override byte[] ToBytes()
     {
-        byte[] res = Array.Empty<byte>();
+        int totalLength = 0;
+        foreach (var a in Attributes)
+        {
+            totalLength += a.ToBytes().Length;
+        }
+        byte[] res = new byte[totalLength];
         int endPos = 0;
-        attributes.ForEach(a =>
+        foreach (var a in Attributes)
         {
             byte[] data = a.ToBytes();
-            Array.Resize(ref res, res.Length + data.Length);
-            ByteArrayUtils.MergeByteArray(ref res, endPos, data);
+            data.CopyTo(res, endPos);
             endPos += data.Length;
-        });
-
+        }
         return res;
     }
 }

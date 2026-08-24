@@ -1,13 +1,13 @@
-using System;
+using System.Buffers.Binary;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Doturn.StunAttribute;
 
 public class MessageIntegrity : StunAttributeBase
 {
-    public readonly Type type = Type.MESSAGE_INTEGRITY;
     private readonly byte[] _messageIntegrity;
-    public override Type Type => type;
+    public override Type Type => Type.MessageIntegrity;
 
     public MessageIntegrity(byte[] messageIntegrity)
     {
@@ -15,25 +15,16 @@ public class MessageIntegrity : StunAttributeBase
     }
     public MessageIntegrity(string username, string password, string realm, byte[] data)
     {
-        var md5 = MD5.Create();
         string keyString = $"{username}:{realm}:{password}";
-        byte[] keyStringByteArray = System.Text.Encoding.ASCII.GetBytes(keyString);
-        byte[] md5HashByteArray = md5.ComputeHash(keyStringByteArray);
-        var hmacSHA1 = new HMACSHA1(md5HashByteArray);
-        md5.Clear();
-        byte[] hmacSHA1ByteArray = hmacSHA1.ComputeHash(data);
-        _messageIntegrity = hmacSHA1ByteArray;
-        hmacSHA1.Clear();
+        byte[] key = MD5.HashData(Encoding.ASCII.GetBytes(keyString));
+        _messageIntegrity = HMACSHA1.HashData(key, data);
     }
     public override byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
+        byte[] typeByteArray = Type.ToBytes();
         int length = _messageIntegrity.Length;
-        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(lengthByteArray);
-        }
+        byte[] lengthByteArray = new byte[2];
+        BinaryPrimitives.WriteUInt16BigEndian(lengthByteArray, (ushort)length);
 
         byte[] res = new byte[2 + 2 + length];
         ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, _messageIntegrity);

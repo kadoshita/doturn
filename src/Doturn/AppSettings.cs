@@ -12,10 +12,10 @@ public interface IAppSettings
 }
 public class AppSettings : IAppSettings
 {
-    public string Username { get; set; } = "";
-    public string Password { get; set; } = "";
-    public string Realm { get; set; } = "";
-    public string ExternalIPAddress { get; set; } = "";
+    public string Username { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string Realm { get; set; } = string.Empty;
+    public string ExternalIPAddress { get; set; } = string.Empty;
     public ushort ListeningPort { get; set; }
     public ushort MinPort { get; set; }
     public ushort MaxPort { get; set; }

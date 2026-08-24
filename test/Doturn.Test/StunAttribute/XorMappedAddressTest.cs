@@ -15,9 +15,9 @@ public class XorMappedAddressTest
         var xorMappedAddress = new XorMappedAddress(realAddress, realPort);
         byte[] byteArray = xorMappedAddress.ToBytes();
         Assert.Equal(expect, byteArray);
-        Assert.Equal(realAddress, xorMappedAddress.realEndpoint.Address.ToString());
-        Assert.Equal(realPort, xorMappedAddress.realEndpoint.Port);
-        Assert.Equal(port, xorMappedAddress.endpoint.Port);
-        Assert.Equal(address, xorMappedAddress.endpoint.Address.ToString());
+        Assert.Equal(realAddress, xorMappedAddress.RealEndpoint.Address.ToString());
+        Assert.Equal(realPort, xorMappedAddress.RealEndpoint.Port);
+        Assert.Equal(port, xorMappedAddress.Endpoint.Port);
+        Assert.Equal(address, xorMappedAddress.Endpoint.Address.ToString());
     }
 }

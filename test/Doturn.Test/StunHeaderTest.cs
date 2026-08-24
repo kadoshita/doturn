@@ -18,16 +18,16 @@ public class StunHeaderTest
     public void Parse_StunHeader()
     {
         var stunHeader = new StunHeader(_bindingRequestByteArray);
-        Assert.Equal(StunMessage.Type.BINDING, stunHeader.type);
-        Assert.Equal(0, stunHeader.messageLength);
-        Assert.Equal(new byte[] { 0x21, 0x12, 0xa4, 0x42 }, stunHeader.magicCookie);
-        Assert.Equal(new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 }, stunHeader.transactionId);
+        Assert.Equal(StunMessage.Type.Binding, stunHeader.Type);
+        Assert.Equal(0, stunHeader.MessageLength);
+        Assert.Equal(new byte[] { 0x21, 0x12, 0xa4, 0x42 }, stunHeader.MagicCookie);
+        Assert.Equal(new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 }, stunHeader.TransactionId);
     }
 
     [Fact]
     public void Convert_To_ByteArray_StunHeader()
     {
-        StunMessage.Type type = StunMessage.Type.BINDING;
+        StunMessage.Type type = StunMessage.Type.Binding;
         short messageLength = 0;
         byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         var stunHeader = new StunHeader(type, messageLength, transactionId);
@@ -37,7 +37,7 @@ public class StunHeaderTest
     [Fact]
     public void Convert_To_ByteArray_StunHeader_With_MagicCookie()
     {
-        StunMessage.Type type = StunMessage.Type.BINDING;
+        StunMessage.Type type = StunMessage.Type.Binding;
         short messageLength = 0;
         byte[] magicCookie = new byte[] { 0x00, 0x00, 0x00, 0x00 };
         byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };

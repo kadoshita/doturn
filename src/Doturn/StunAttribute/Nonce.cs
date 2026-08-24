@@ -1,47 +1,47 @@
 using System;
-using System.Linq;
+using System.Buffers.Binary;
+using System.Text;
 
 namespace Doturn.StunAttribute;
 
 public class Nonce : StunAttributeBase
 {
-    public readonly Type type = Type.NONCE;
-    public readonly string nonce;
-    private static readonly Random s_random = new();
-    public override Type Type => type;
-    public Nonce()
+    private const string NonceChars = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+    public string Value { get; }
+    public override Type Type => Type.Nonce;
+    public Nonce() : this(GenerateNonce(16))
     {
-        nonce = generateNonce(16);
     }
     public Nonce(string nonce)
     {
-        this.nonce = nonce;
+        Value = nonce;
     }
 
     public override byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
-        byte[] nonceByteArray = System.Text.Encoding.ASCII.GetBytes(nonce);
+        byte[] nonceByteArray = Encoding.ASCII.GetBytes(Value);
         int length = nonceByteArray.Length;
-        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(lengthByteArray);
-        }
         byte[] res = new byte[2 + 2 + length];
-        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, nonceByteArray);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(0, 2), (ushort)Type);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(2, 2), (ushort)length);
+        nonceByteArray.CopyTo(res, 4);
         return res;
     }
-    private static string generateNonce(int length)
+    private static string GenerateNonce(int length)
     {
-        const string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[s_random.Next(s.Length)]).ToArray());
+        return string.Create(length, NonceChars, static (span, chars) =>
+        {
+            for (int i = 0; i < span.Length; i++)
+            {
+                span[i] = chars[Random.Shared.Next(chars.Length)];
+            }
+        });
     }
 
     public static Nonce Parse(byte[] data)
     {
-        string nonceStr = System.Text.Encoding.ASCII.GetString(data);
+        string nonceStr = Encoding.ASCII.GetString(data);
         return new Nonce(nonceStr);
     }
 }

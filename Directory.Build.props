@@ -13,16 +13,8 @@
         CA1848 (LoggerMessage delegates) — LoggerMessage 生成器は導入しない方針
         CA5350/CA5351 (weak/broken crypto: HMACSHA1/MD5) — STUN/TURN 仕様要件
         CA1711 (type name ends with reserved suffix) — StunAttribute / CreatePermission は仕様用語
-      Phase 2 で解消予定 (該当行を直したら NoWarn から外す):
-        CA1051 (public field → property)
-        CA1707 (enum member SCREAMING_SNAKE → PascalCase)
-        CA1708 (case-only differing members)
-        CA1725 (parameter name matches base)
-        CA1727 (log placeholder PascalCase)
-        CA2016 (forward CancellationToken)
-        CA2254 (variable log template)
     -->
-    <NoWarn>$(NoWarn);CA1848;CA5350;CA5351;CA1711;CA1051;CA1707;CA1708;CA1725;CA1727;CA2016;CA2254</NoWarn>
+    <NoWarn>$(NoWarn);CA1848;CA5350;CA5351;CA1711</NoWarn>
   </PropertyGroup>
 
 </Project>

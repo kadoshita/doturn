@@ -9,20 +9,20 @@ namespace Doturn.Network;
 
 public class ConnectionEntry
 {
-    public IPEndPoint client { get; set; }
-    public IPEndPoint? peer { get; set; }
-    public byte[]? channelNumber { get; set; }
-    public StunServerService.IStunServerService sss { get; set; }
+    public IPEndPoint Client { get; set; }
+    public IPEndPoint? Peer { get; set; }
+    public byte[]? ChannelNumber { get; set; }
+    public StunServerService.IStunServerService RelayService { get; set; }
 
-    public ConnectionEntry(IPAddress clientAddress, ushort clientPort, StunServerService.IStunServerService sss)
+    public ConnectionEntry(IPAddress clientAddress, ushort clientPort, StunServerService.IStunServerService relayService)
     {
-        client = new IPEndPoint(clientAddress, clientPort);
-        this.sss = sss;
+        Client = new IPEndPoint(clientAddress, clientPort);
+        RelayService = relayService;
     }
-    public ConnectionEntry(IPEndPoint client, StunServerService.IStunServerService sss)
+    public ConnectionEntry(IPEndPoint client, StunServerService.IStunServerService relayService)
     {
-        this.client = client;
-        this.sss = sss;
+        Client = client;
+        RelayService = relayService;
     }
 }
 
@@ -40,59 +40,52 @@ public interface IConnectionManager
     int GetEntriesCount();
 
 }
-public class ConnectionManager : IConnectionManager
+public class ConnectionManager(ILogger<ConnectionManager> logger) : IConnectionManager
 {
     // TODO Dictionaryを使う
-    public readonly List<ConnectionEntry> _entries = new();
-    private readonly ILogger<ConnectionManager> _logger;
+    private readonly List<ConnectionEntry> _entries = new();
+    private readonly ILogger<ConnectionManager> _logger = logger;
+    private UdpClient? _mainClient;
 
-    public UdpClient? mainClient;
-
-    public ConnectionManager(ILogger<ConnectionManager> logger)
-    {
-        _logger = logger;
-    }
+    public UdpClient? MainClient => _mainClient;
 
     public void SetMainClient(UdpClient client)
     {
-        if (mainClient == null)
-        {
-            mainClient = client;
-        }
+        _mainClient ??= client;
     }
 
     public Task<int> SendMainClientAsync(byte[] data, int length, IPEndPoint endpoint)
     {
-        if (mainClient == null)
+        if (_mainClient == null)
         {
-            throw new InvalidOperationException("mainClient has not been set");
+            throw new InvalidOperationException("MainClient has not been set");
         }
-        return mainClient.SendAsync(data, length, endpoint);
+        return _mainClient.SendAsync(data, length, endpoint);
     }
     public void AddConnectionEntry(ConnectionEntry entry)
     {
-        _logger.LogDebug($"Add entry {entry.client.Address}:{entry.client.Port}");
+        _logger.LogDebug("Add entry {Address}:{Port}", entry.Client.Address, entry.Client.Port);
         _entries.Add(entry);
-        _logger.LogDebug($"Entries: {_entries.Count}");
+        _logger.LogDebug("Entries: {Count}", _entries.Count);
     }
 
     public void AddPeerEndpoint(IPEndPoint client, IPEndPoint peer)
     {
-        _logger.LogDebug($"Add peer {client.Address}:{client.Port} - {peer.Address}:{peer.Port}");
-        ConnectionEntry? entry = _entries.Find(e => e.client.Equals(client));
+        _logger.LogDebug("Add peer {ClientAddress}:{ClientPort} - {PeerAddress}:{PeerPort}", client.Address, client.Port, peer.Address, peer.Port);
+        ConnectionEntry? entry = _entries.Find(e => e.Client.Equals(client));
         if (entry != null)
         {
-            entry.peer = peer;
+            entry.Peer = peer;
         }
     }
 
     public void AddChannelNumber(IPEndPoint client, byte[] channelNumber)
     {
-        _logger.LogDebug($"Add channel number {client.Address}:{client.Port} - {BitConverter.ToString(channelNumber)}");
-        ConnectionEntry? entry = _entries.Find(e => e.client.Equals(client));
+        _logger.LogDebug("Add channel number {Address}:{Port} - {ChannelNumber}", client.Address, client.Port, BitConverter.ToString(channelNumber));
+        ConnectionEntry? entry = _entries.Find(e => e.Client.Equals(client));
         if (entry != null)
         {
-            entry.channelNumber = channelNumber;
+            entry.ChannelNumber = channelNumber;
         }
     }
 
@@ -103,61 +96,61 @@ public class ConnectionManager : IConnectionManager
 
     public ConnectionEntry? GetEntry(IPEndPoint endpoint)
     {
-        _logger.LogDebug($"Get entry {endpoint.Address} {endpoint.Port}");
-        ConnectionEntry? entry = _entries.Find(e => e.client.Equals(endpoint));
-        _logger.LogDebug($"Entry: {entry}");
+        _logger.LogDebug("Get entry {Address} {Port}", endpoint.Address, endpoint.Port);
+        ConnectionEntry? entry = _entries.Find(e => e.Client.Equals(endpoint));
+        _logger.LogDebug("Entry: {Entry}", entry);
         return entry;
     }
 
     public ConnectionEntry? GetEntryByPeer(IPEndPoint endpoint)
     {
-        _logger.LogDebug($"Get entry by Peer {endpoint.Address} {endpoint.Port}");
+        _logger.LogDebug("Get entry by Peer {Address} {Port}", endpoint.Address, endpoint.Port);
         ConnectionEntry? entry = _entries.Find(e =>
         {
-            if (e.peer == null)
+            if (e.Peer == null)
             {
                 return false;
             }
-            return e.peer.Equals(endpoint);
+            return e.Peer.Equals(endpoint);
         });
-        if (entry != null && entry.peer != null)
+        if (entry != null && entry.Peer != null)
         {
-            _logger.LogDebug($"Entry {entry.client.Address}:{entry.client.Port} - {entry.peer.Address}:{entry.peer.Port}");
+            _logger.LogDebug("Entry {ClientAddress}:{ClientPort} - {PeerAddress}:{PeerPort}", entry.Client.Address, entry.Client.Port, entry.Peer.Address, entry.Peer.Port);
         }
         return entry;
     }
 
     public ConnectionEntry? GetEntryByChannelNumber(byte[] channelNumber)
     {
-        _logger.LogDebug($"Get entry by Channel Number {BitConverter.ToString(channelNumber)}");
+        _logger.LogDebug("Get entry by Channel Number {ChannelNumber}", BitConverter.ToString(channelNumber));
         ConnectionEntry? entry = _entries.Find(e =>
         {
-            if (e.channelNumber == null)
+            if (e.ChannelNumber == null)
             {
                 return false;
             }
-            return e.channelNumber[0] == channelNumber[0] && e.channelNumber[1] == channelNumber[1];
+            return e.ChannelNumber[0] == channelNumber[0] && e.ChannelNumber[1] == channelNumber[1];
         });
-        if (entry != null && entry.peer != null)
+        if (entry != null && entry.Peer != null)
         {
-            _logger.LogDebug($"Entry {entry.client.Address}:{entry.client.Port} - {entry.peer.Address}:{entry.peer.Port}");
+            _logger.LogDebug("Entry {ClientAddress}:{ClientPort} - {PeerAddress}:{PeerPort}", entry.Client.Address, entry.Client.Port, entry.Peer.Address, entry.Peer.Port);
         }
         return entry;
     }
 
     public void DeleteEntry(IPEndPoint client)
     {
-        _logger.LogDebug("Delete Entry {address}:{port}", client.Address.ToString(), client.Port);
-        var entry = _entries.Find(e => e.client.Equals(client));
+        _logger.LogDebug("Delete Entry {Address}:{Port}", client.Address, client.Port);
+        var entry = _entries.Find(e => e.Client.Equals(client));
         if (entry != null)
         {
-            if (entry.sss != null && entry.sss._client != null)
+            if (entry.RelayService != null && entry.RelayService.Client != null)
             {
                 _logger.LogDebug("Close connection");
-                entry.sss._client.Close();
+                entry.RelayService.Client.Close();
             }
             _entries.Remove(entry);
         }
-        _logger.LogDebug("Entries Count {count}", GetEntriesCount());
+        _logger.LogDebug("Entries Count {Count}", GetEntriesCount());
     }
 }

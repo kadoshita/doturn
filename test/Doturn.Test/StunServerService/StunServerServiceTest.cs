@@ -40,9 +40,9 @@ public class StunServerServiceTest
 
         var service = new StunServerService(_logger, options, connectionManagerMock.Object, _portAllocator);
 
-        Assert.Equal(_appSettings.ListeningPort, service.listenPort);
+        Assert.Equal(_appSettings.ListeningPort, service.ListenPort);
         connectionManagerMock.Verify(m => m.SetMainClient(It.IsAny<UdpClient>()), Times.Once);
-        Assert.NotNull(((IStunServerService)service)._client);
+        Assert.NotNull(((IStunServerService)service).Client);
     }
 
     [Fact]
@@ -54,9 +54,9 @@ public class StunServerServiceTest
 
         var service = new StunServerService(_logger, options, connectionManagerMock.Object, _portAllocator, explicitPort);
 
-        Assert.Equal(explicitPort, service.listenPort);
+        Assert.Equal(explicitPort, service.ListenPort);
         connectionManagerMock.Verify(m => m.SetMainClient(It.IsAny<UdpClient>()), Times.Never);
-        Assert.NotNull(((IStunServerService)service)._client);
+        Assert.NotNull(((IStunServerService)service).Client);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class StunServerServiceTest
         var connectionManager = Mock.Of<IConnectionManager>();
         var options = Options.Create(_appSettings);
         var service = new StunServerService(_logger, options, connectionManager, _portAllocator);
-        int boundPort = ((IPEndPoint)((IStunServerService)service)._client.Client.LocalEndPoint!).Port;
+        int boundPort = ((IPEndPoint)((IStunServerService)service).Client.Client.LocalEndPoint!).Port;
 
         // BackgroundService.StartAsync begins running ExecuteAsync on a background task.
         _ = service.StartAsync(default);
@@ -76,7 +76,7 @@ public class StunServerServiceTest
         byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         byte[] bindingRequest = new byte[20];
         ByteArrayUtils.MergeByteArray(ref bindingRequest,
-            new byte[] { 0x00, 0x01, 0x00, 0x00 }, // type: BINDING, length: 0
+            new byte[] { 0x00, 0x01, 0x00, 0x00 }, // type: Binding, length: 0
             new byte[] { 0x21, 0x12, 0xa4, 0x42 }, // magic cookie
             transactionId);
 
@@ -87,7 +87,7 @@ public class StunServerServiceTest
         Assert.Same(receiveTask, completedTask);
 
         byte[] response = (await receiveTask).Buffer;
-        Assert.Equal(new byte[] { 0x01, 0x01 }, response[0..2]); // BINDING_SUCCESS
+        Assert.Equal(new byte[] { 0x01, 0x01 }, response[0..2]); // BindingSuccess
         Assert.Equal(transactionId, response[8..20]);
     }
 }

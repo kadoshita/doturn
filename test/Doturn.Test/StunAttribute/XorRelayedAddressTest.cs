@@ -15,9 +15,9 @@ public class XorRelayedAddressTest
         var xorRelayedAddress = new XorRelayedAddress(realAddress, realPort);
         byte[] byteArray = xorRelayedAddress.ToBytes();
         Assert.Equal(expect, byteArray);
-        Assert.Equal(realAddress, xorRelayedAddress.realEndpoint.Address.ToString());
-        Assert.Equal(realPort, xorRelayedAddress.realEndpoint.Port);
-        Assert.Equal(port, xorRelayedAddress.endpoint.Port);
-        Assert.Equal(address, xorRelayedAddress.endpoint.Address.ToString());
+        Assert.Equal(realAddress, xorRelayedAddress.RealEndpoint.Address.ToString());
+        Assert.Equal(realPort, xorRelayedAddress.RealEndpoint.Port);
+        Assert.Equal(port, xorRelayedAddress.Endpoint.Port);
+        Assert.Equal(address, xorRelayedAddress.Endpoint.Address.ToString());
     }
 }
