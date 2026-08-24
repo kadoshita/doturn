@@ -4,28 +4,50 @@ on:
   push:
     paths:
       - '**.cs'
+      - '**.csproj'
+      - 'global.json'
       - '**.yml'
       - '**.py'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '**.cs'
+      - '**.csproj'
+      - 'global.json'
+      - '**.yml'
+      - '**.py'
+
+permissions:
+  contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        timeout-minutes: 5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        timeout-minutes: 5
         with:
           python-version: '3.x'
           architecture: 'x64'
       - name: Copy config file
         run: cp ./src/Doturn/appsettings.sample.json ./src/Doturn/appsettings.json
+        timeout-minutes: 1
       - name: Set ExternalIPAddress
         run: sed -i -e 's/203\.0\.113\.1/127\.0\.0\.1/' ./src/Doturn/appsettings.json
+        timeout-minutes: 1
       - name: Start Server
-        run: docker-compose -f docker-compose.test.yml up -d
+        run: docker compose -f docker-compose.test.yml up -d
+        timeout-minutes: 5
       - name: Wait for server
         run: sleep 10s
+        timeout-minutes: 1
       - name: Test
-        run: docker-compose -f docker-compose.test.yml exec -T coturn turnutils_uclient -v -u username -w password doturn -y -X -n 1024 -z 1 -s -c | ./script/check.py
+        run: docker compose -f docker-compose.test.yml exec -T coturn turnutils_uclient -v -u username -w password doturn -y -X -n 1024 -z 1 -s -c | ./script/check.py
         timeout-minutes: 1
       - name: Terminate Server
-        run: docker-compose -f docker-compose.test.yml down
+        run: docker compose -f docker-compose.test.yml down
+        timeout-minutes: 5
