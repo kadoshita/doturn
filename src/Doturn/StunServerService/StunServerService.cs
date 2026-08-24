@@ -14,6 +14,7 @@ namespace Doturn.StunServerService;
 public interface IStunServerService
 {
     UdpClient Client { get; }
+    ushort ListenPort { get; }
 }
 public class StunServerService : BackgroundService, IStunServerService
 {

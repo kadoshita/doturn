@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Net.NetworkInformation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,25 +9,48 @@ namespace Doturn.Network;
 public interface IPortAllocator
 {
     ushort GetPort();
+    void ReleasePort(ushort port);
 }
 public class PortAllocateException : Exception
 {
     public PortAllocateException() : base() { }
 }
-public class PortAllocator(ILogger<PortAllocator> logger, IOptions<AppSettings> options, IConnectionManager connectionManager) : IPortAllocator
+public class PortAllocator : IPortAllocator
 {
-    private readonly ILogger<PortAllocator> _logger = logger;
-    private readonly IOptions<AppSettings> _options = options;
-    private readonly IConnectionManager _connectionManager = connectionManager;
+    private readonly ILogger<PortAllocator> _logger;
+    private readonly ConcurrentQueue<ushort> _availablePorts = new();
+
+    public PortAllocator(ILogger<PortAllocator> logger, IOptions<AppSettings> options)
+    {
+        _logger = logger;
+        var settings = options.Value;
+        var activeUdpPorts = new HashSet<int>();
+        foreach (var e in IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners())
+        {
+            activeUdpPorts.Add(e.Port);
+        }
+        for (int p = settings.MinPort; p <= settings.MaxPort; p++)
+        {
+            if (!activeUdpPorts.Contains(p))
+            {
+                _availablePorts.Enqueue((ushort)p);
+            }
+        }
+    }
 
     public ushort GetPort()
     {
-        //ref:https://gist.github.com/jrusbatch/4211535?permalink_comment_id=3504205#gistcomment-3504205
-        var ipGlobalProperties = IPGlobalProperties.GetIPGlobalProperties();
-        var udpEndpoints = ipGlobalProperties.GetActiveUdpListeners();
-        var notAvailablePorts = udpEndpoints.Select(e => e.Port);
-        var port = (ushort)Enumerable.Range(_options.Value.MinPort, _options.Value.MaxPort - _options.Value.MinPort + 1).Except(notAvailablePorts).FirstOrDefault();
+        if (!_availablePorts.TryDequeue(out ushort port))
+        {
+            throw new PortAllocateException();
+        }
         _logger.LogDebug("GetPort: {Port}", port);
         return port;
+    }
+
+    public void ReleasePort(ushort port)
+    {
+        _availablePorts.Enqueue(port);
+        _logger.LogDebug("ReleasePort: {Port}", port);
     }
 }
