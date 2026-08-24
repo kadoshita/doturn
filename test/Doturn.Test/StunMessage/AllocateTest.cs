@@ -55,16 +55,16 @@ public class AllocateTest
         var nonce = (StunAttribute.Nonce)allocateRequest.attributes[3];
         var messageIntegrity = (StunAttribute.MessageIntegrity)allocateRequest.attributes[4];
         var fingerprint = (StunAttribute.Fingerprint)allocateRequest.attributes[5];
-        Assert.Equal(StunAttribute.Type.REQUESTED_TRANSPORT, requestedTransport.Type);
-        Assert.Equal(StunAttribute.Transport.UDP, requestedTransport.transport);
-        Assert.Equal(StunAttribute.Type.USERNAME, username.Type);
-        Assert.Equal("username", username.username);
-        Assert.Equal(StunAttribute.Type.REALM, realm.Type);
-        Assert.Equal("example.com", realm.realm);
-        Assert.Equal(StunAttribute.Type.NONCE, nonce.Type);
-        Assert.Equal("ho2ydw5qeeqsgasz", nonce.nonce);
-        Assert.Equal(StunAttribute.Type.MESSAGE_INTEGRITY, messageIntegrity.Type);
-        Assert.Equal(StunAttribute.Type.FINGERPRINT, fingerprint.Type);
+        Assert.Equal(StunAttribute.Type.RequestedTransport, requestedTransport.Type);
+        Assert.Equal(StunAttribute.Transport.Udp, requestedTransport.Value);
+        Assert.Equal(StunAttribute.Type.Username, username.Type);
+        Assert.Equal("username", username.Value);
+        Assert.Equal(StunAttribute.Type.Realm, realm.Type);
+        Assert.Equal("example.com", realm.Value);
+        Assert.Equal(StunAttribute.Type.Nonce, nonce.Type);
+        Assert.Equal("ho2ydw5qeeqsgasz", nonce.Value);
+        Assert.Equal(StunAttribute.Type.MessageIntegrity, messageIntegrity.Type);
+        Assert.Equal(StunAttribute.Type.Fingerprint, fingerprint.Type);
         Assert.Equal(_allocateRequestByteArray, convertedAllocateRequestByteArray);
     }
 

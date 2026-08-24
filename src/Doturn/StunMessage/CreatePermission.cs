@@ -6,16 +6,15 @@ namespace Doturn.StunMessage;
 
 public class CreatePermission : StunMessageBase
 {
-    public readonly Type type;
     private readonly byte[] _magicCookie;
     public readonly byte[] transactionId;
     public readonly List<IStunAttribute> attributes = new();
     private readonly IAppSettings _appSettings;
-    public override Type Type => type;
+    public override Type Type { get; }
 
     public CreatePermission(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
     {
-        type = Type.CREATE_PERMISSION;
+        Type = Type.CreatePermission;
         _magicCookie = magicCookie;
         this.transactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
@@ -24,7 +23,7 @@ public class CreatePermission : StunMessageBase
     }
     public CreatePermission(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
-        type = isSuccess ? Type.CREATE_PERMISSION_SUCCESS : Type.CREATE_PERMISSION_ERROR;
+        Type = isSuccess ? Type.CreatePermissionSuccess : Type.CreatePermissionError;
         _magicCookie = magicCookie;
         this.transactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
@@ -43,14 +42,14 @@ public class CreatePermission : StunMessageBase
         byte[] tmpCreatePermissionSuccessResponseByteArray = tmpCreatePermissionSuccessResponse.ToBytes();
 
 
-        var tmpStunHeader = new StunHeader(Type.CREATE_PERMISSION_SUCCESS, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
+        var tmpStunHeader = new StunHeader(Type.CreatePermissionSuccess, (short)(tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintLength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray);
         var messageIntegrity = new MessageIntegrity(_appSettings.Username, _appSettings.Password, _appSettings.Realm, responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintLength))]);
         byte[] messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-        var stunHeader = new StunHeader(Type.CREATE_PERMISSION_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintLength), transactionId);
+        var stunHeader = new StunHeader(Type.CreatePermissionSuccess, (short)(tmpStunHeader.MessageLength + fingerprintLength), transactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionSuccessResponseByteArray, messageIntegrityByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintLength)]);
@@ -68,12 +67,12 @@ public class CreatePermission : StunMessageBase
         var tmpCreatePermissionErrorResponse = new CreatePermission(_magicCookie, transactionId, attributes, false, _appSettings);
         byte[] tmpCreatePermissionErrorResponseByteArray = tmpCreatePermissionErrorResponse.ToBytes();
 
-        var tmpStunHeader = new StunHeader(Type.CREATE_PERMISSION_ERROR, (short)tmpCreatePermissionErrorResponseByteArray.Length, transactionId);
+        var tmpStunHeader = new StunHeader(Type.CreatePermissionError, (short)tmpCreatePermissionErrorResponseByteArray.Length, transactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpCreatePermissionErrorResponseByteArray.Length + fingerprintlength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
 
-        var stunHeader = new StunHeader(Type.CREATE_PERMISSION_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+        var stunHeader = new StunHeader(Type.CreatePermissionError, (short)(tmpStunHeader.MessageLength + fingerprintlength), transactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpCreatePermissionErrorResponseByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);

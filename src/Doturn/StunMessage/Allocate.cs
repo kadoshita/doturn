@@ -7,16 +7,15 @@ namespace Doturn.StunMessage;
 
 public class Allocate : StunMessageBase
 {
-    public readonly Type type;
     private readonly byte[] _magicCookie;
     public readonly byte[] transactionId;
     public readonly List<IStunAttribute> attributes = new();
     private readonly IAppSettings _appSettings;
-    public override Type Type => type;
+    public override Type Type { get; }
 
     public Allocate(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
     {
-        type = Type.ALLOCATE;
+        Type = Type.Allocate;
         _magicCookie = magicCookie;
         this.transactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
@@ -25,7 +24,7 @@ public class Allocate : StunMessageBase
     }
     public Allocate(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
-        type = isSuccess ? Type.ALLOCATE_SUCCESS : Type.ALLOCATE_ERROR;
+        Type = isSuccess ? Type.AllocateSuccess : Type.AllocateError;
         _magicCookie = magicCookie;
         this.transactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
@@ -51,14 +50,14 @@ public class Allocate : StunMessageBase
         var tmpAllocateSuccessResponse = new Allocate(_magicCookie, transactionId, attributes, true, _appSettings);
         byte[] tmpAllocateSuccessResponseByteArray = tmpAllocateSuccessResponse.ToBytes();
 
-        var tmpStunHeader = new StunHeader(Type.ALLOCATE_SUCCESS, (short)(tmpAllocateSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
+        var tmpStunHeader = new StunHeader(Type.AllocateSuccess, (short)(tmpAllocateSuccessResponseByteArray.Length + messageIntegrityLength), transactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpAllocateSuccessResponseByteArray.Length + messageIntegrityLength + fingerprintlength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpAllocateSuccessResponseByteArray);
         var messageIntegrity = new MessageIntegrity(_appSettings.Username, _appSettings.Password, _appSettings.Realm, responseByteArray[0..(responseByteArray.Length - (messageIntegrityLength + fingerprintlength))]);
         byte[] messageIntegrityByteArray = messageIntegrity.ToBytes();
 
-        var stunHeader = new StunHeader(Type.ALLOCATE_SUCCESS, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+        var stunHeader = new StunHeader(Type.AllocateSuccess, (short)(tmpStunHeader.MessageLength + fingerprintlength), transactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpAllocateSuccessResponseByteArray, messageIntegrityByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);
@@ -80,12 +79,12 @@ public class Allocate : StunMessageBase
         var tmpAllocateErrorResponse = new Allocate(_magicCookie, transactionId, attributes, false, _appSettings);
         byte[] tmpAllocateErrorResponseByteArray = tmpAllocateErrorResponse.ToBytes();
 
-        var tmpStunHeader = new StunHeader(Type.ALLOCATE_ERROR, (short)tmpAllocateErrorResponseByteArray.Length, transactionId);
+        var tmpStunHeader = new StunHeader(Type.AllocateError, (short)tmpAllocateErrorResponseByteArray.Length, transactionId);
         byte[] tmpStunHeaderByteArray = tmpStunHeader.ToBytes();
         byte[] responseByteArray = new byte[tmpStunHeaderByteArray.Length + tmpAllocateErrorResponseByteArray.Length + fingerprintlength];
         ByteArrayUtils.MergeByteArray(ref responseByteArray, tmpStunHeaderByteArray, tmpAllocateErrorResponseByteArray);
 
-        var stunHeader = new StunHeader(Type.ALLOCATE_ERROR, (short)(tmpStunHeader.messageLength + fingerprintlength), transactionId);
+        var stunHeader = new StunHeader(Type.AllocateError, (short)(tmpStunHeader.MessageLength + fingerprintlength), transactionId);
         byte[] stunHeaderByteArray = stunHeader.ToBytes();
         ByteArrayUtils.MergeByteArray(ref responseByteArray, stunHeaderByteArray, tmpAllocateErrorResponseByteArray);
         var fingerprint = Fingerprint.CreateFingerprint(responseByteArray[0..(responseByteArray.Length - fingerprintlength)]);

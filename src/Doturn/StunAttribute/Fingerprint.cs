@@ -1,13 +1,15 @@
 using System;
+using System.Buffers.Binary;
 using Force.Crc32;
 
 namespace Doturn.StunAttribute;
 
 public class Fingerprint : StunAttributeBase
 {
-    public readonly Type type = Type.FINGERPRINT;
+    private const uint FingerprintXor = 0x5354554E;
+
     private readonly byte[] _crc32;
-    public override Type Type => type;
+    public override Type Type => Type.Fingerprint;
 
     public Fingerprint(byte[] crc32)
     {
@@ -16,35 +18,17 @@ public class Fingerprint : StunAttributeBase
     public static Fingerprint CreateFingerprint(byte[] data)
     {
         uint crc32 = Crc32Algorithm.Compute(data, 0, data.Length);
-        byte[] crc32Byte = BitConverter.GetBytes(crc32);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(crc32Byte);
-        }
-        byte[] crc32XorByte = new byte[crc32Byte.Length];
-        byte[] fingerprintXor = BitConverter.GetBytes(0x5354554e);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(fingerprintXor);
-        }
-        for (int i = 0; i < crc32Byte.Length; i++)
-        {
-            crc32XorByte[i] = (byte)(crc32Byte[i] ^ fingerprintXor[i]);
-        }
+        byte[] crc32XorByte = new byte[4];
+        BinaryPrimitives.WriteUInt32BigEndian(crc32XorByte, crc32 ^ FingerprintXor);
         return new Fingerprint(crc32XorByte);
     }
     public override byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
         int length = _crc32.Length;
-        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(lengthByteArray);
-        }
-
         byte[] res = new byte[2 + 2 + length];
-        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, _crc32);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(0, 2), (ushort)Type);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(2, 2), (ushort)length);
+        _crc32.CopyTo(res, 4);
         return res;
     }
 

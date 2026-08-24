@@ -15,9 +15,9 @@ public class XorPeerAddressTest
         var xorPeerAddress = new XorPeerAddress(realAddress, realPort);
         byte[] byteArray = xorPeerAddress.ToBytes();
         Assert.Equal(expect, byteArray);
-        Assert.Equal(realAddress, xorPeerAddress.realEndpoint.Address.ToString());
-        Assert.Equal(realPort, xorPeerAddress.realEndpoint.Port);
-        Assert.Equal(port, xorPeerAddress.endpoint.Port);
-        Assert.Equal(address, xorPeerAddress.endpoint.Address.ToString());
+        Assert.Equal(realAddress, xorPeerAddress.RealEndpoint.Address.ToString());
+        Assert.Equal(realPort, xorPeerAddress.RealEndpoint.Port);
+        Assert.Equal(port, xorPeerAddress.Endpoint.Port);
+        Assert.Equal(address, xorPeerAddress.Endpoint.Address.ToString());
     }
 }

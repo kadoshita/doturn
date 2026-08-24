@@ -76,7 +76,7 @@ public class StunServerServiceTest
         byte[] transactionId = new byte[] { 0x39, 0x50, 0x4d, 0x4b, 0x64, 0x63, 0x79, 0x30, 0x6e, 0x6c, 0x69, 0x58 };
         byte[] bindingRequest = new byte[20];
         ByteArrayUtils.MergeByteArray(ref bindingRequest,
-            new byte[] { 0x00, 0x01, 0x00, 0x00 }, // type: BINDING, length: 0
+            new byte[] { 0x00, 0x01, 0x00, 0x00 }, // type: Binding, length: 0
             new byte[] { 0x21, 0x12, 0xa4, 0x42 }, // magic cookie
             transactionId);
 
@@ -87,7 +87,7 @@ public class StunServerServiceTest
         Assert.Same(receiveTask, completedTask);
 
         byte[] response = (await receiveTask).Buffer;
-        Assert.Equal(new byte[] { 0x01, 0x01 }, response[0..2]); // BINDING_SUCCESS
+        Assert.Equal(new byte[] { 0x01, 0x01 }, response[0..2]); // BindingSuccess
         Assert.Equal(transactionId, response[8..20]);
     }
 }

@@ -18,7 +18,7 @@ public class ChannelNumberTest
     {
         byte[] data = new byte[] { 0x40, 0x00, 0x00, 0x00 };
         var channelNumber = ChannelNumber.Parse(data);
-        Assert.Equal(new byte[] { 0x40, 0x00 }, channelNumber.channelNumber);
+        Assert.Equal(new byte[] { 0x40, 0x00 }, channelNumber.Value);
         byte[] result = channelNumber.ToBytes();
         byte[] expect = new byte[] { 0x00, 0x0C, 0x00, 0x04, 0x40, 0x00, 0x00, 0x00 };
         Assert.Equal(expect, result);

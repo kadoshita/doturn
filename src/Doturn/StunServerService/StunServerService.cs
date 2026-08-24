@@ -72,12 +72,12 @@ public class StunServerService : BackgroundService, IStunServerService
                 {
                     _logger.LogInformation(listenPort, "{channelNumber} is ChannelNumber", _channelNumber);
                     var entry = _connectionManager.GetEntryByChannelNumber(data.Buffer[0..2]);
-                    if (entry != null && entry.peer != null)
+                    if (entry != null && entry.Peer != null)
                     {
-                        _logger.LogDebug(listenPort, "ChannelData received: {channelNumber} {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", _channelNumber, BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, entry.peer.Address, entry.peer.Port);
-                        if (entry.sss != null && entry.sss._client != null)
+                        _logger.LogDebug(listenPort, "ChannelData received: {channelNumber} {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", _channelNumber, BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, entry.Peer.Address, entry.Peer.Port);
+                        if (entry.RelayService != null && entry.RelayService._client != null)
                         {
-                            await entry.sss._client.SendAsync(rawData, rawData.Length, entry.peer);
+                            await entry.RelayService._client.SendAsync(rawData, rawData.Length, entry.Peer);
                         }
                         continue;
                     }
@@ -87,15 +87,15 @@ public class StunServerService : BackgroundService, IStunServerService
                 ConnectionEntry? peerEntry = _connectionManager.GetEntryByPeer(data.RemoteEndPoint);
                 if (peerEntry != null)
                 {
-                    _logger.LogDebug(listenPort, "Application data received: {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, peerEntry.client.Address, peerEntry.client.Port);
-                    if (peerEntry.channelNumber == null)
+                    _logger.LogDebug(listenPort, "Application data received: {messageLength} {remoteAddress}:{remotePort} {clientAddress}:{clientPort}", BitConverter.ToString(messageLength), data.RemoteEndPoint.Address, data.RemoteEndPoint.Port, peerEntry.Client.Address, peerEntry.Client.Port);
+                    if (peerEntry.ChannelNumber == null)
                     {
                         StunMessage.Data dataIndication = new(data.Buffer);
                         byte[] dataIndicationBytes = dataIndication.CreateDataIndication(data.RemoteEndPoint);
-                        if (peerEntry.client != null)
+                        if (peerEntry.Client != null)
                         {
                             _logger.LogDebug(listenPort, "send: {messageType} {bytes}", dataIndication.Type, BitConverter.ToString(data.Buffer));
-                            await _connectionManager.SendMainClientAsync(dataIndicationBytes, dataIndicationBytes.Length, peerEntry.client);
+                            await _connectionManager.SendMainClientAsync(dataIndicationBytes, dataIndicationBytes.Length, peerEntry.Client);
                         }
                     }
                     else
@@ -106,8 +106,8 @@ public class StunServerService : BackgroundService, IStunServerService
                         {
                             Array.Reverse(lengthBytes);
                         }
-                        ByteArrayUtils.MergeByteArray(ref channelData, peerEntry.channelNumber, lengthBytes, data.Buffer);
-                        await _connectionManager.SendMainClientAsync(channelData, channelData.Length, peerEntry.client);
+                        ByteArrayUtils.MergeByteArray(ref channelData, peerEntry.ChannelNumber, lengthBytes, data.Buffer);
+                        await _connectionManager.SendMainClientAsync(channelData, channelData.Length, peerEntry.Client);
                     }
                     continue;
                 }
@@ -115,13 +115,13 @@ public class StunServerService : BackgroundService, IStunServerService
 
                 StunMessage.IStunMessage message = StunMessage.StunMessageParser.Parse(data.Buffer, _options.Value);
                 _logger.LogDebug(listenPort, "req: {messageType} {bytes}", message.Type, BitConverter.ToString(data.Buffer));
-                if (message.Type == StunMessage.Type.BINDING)
+                if (message.Type == StunMessage.Type.Binding)
                 {
                     byte[] res = ((StunMessage.Binding)message).CreateSuccessResponse(data.RemoteEndPoint);
                     _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                     await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                 }
-                else if (message.Type == StunMessage.Type.ALLOCATE)
+                else if (message.Type == StunMessage.Type.Allocate)
                 {
                     IPAddress relayAddress = IPAddress.Parse(_options.Value.ExternalIPAddress);
                     ushort relayPort = _portAllocator.GetPort();
@@ -132,20 +132,20 @@ public class StunServerService : BackgroundService, IStunServerService
                     _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                     await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                 }
-                else if (message.Type == StunMessage.Type.CREATE_PERMISSION)
+                else if (message.Type == StunMessage.Type.CreatePermission)
                 {
                     var createPermissionMessage = (StunMessage.CreatePermission)message;
-                    var xorPeerAddress = (StunAttribute.XorPeerAddress)createPermissionMessage.attributes.Find(a => a.Type == StunAttribute.Type.XOR_PEER_ADDRESS)!;
-                    _connectionManager.AddPeerEndpoint(data.RemoteEndPoint, xorPeerAddress.realEndpoint);
+                    var xorPeerAddress = (StunAttribute.XorPeerAddress)createPermissionMessage.attributes.Find(a => a.Type == StunAttribute.Type.XorPeerAddress)!;
+                    _connectionManager.AddPeerEndpoint(data.RemoteEndPoint, xorPeerAddress.RealEndpoint);
                     byte[] res = createPermissionMessage.CreateSuccessResponse();
                     _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                     await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                 }
-                else if (message.Type == StunMessage.Type.REFRESH)
+                else if (message.Type == StunMessage.Type.Refresh)
                 {
                     var refreshRequest = (StunMessage.Refresh)message;
-                    var lifetime = (StunAttribute.Lifetime)refreshRequest.attributes.Find(a => a.Type == StunAttribute.Type.LIFETIME)!;
-                    if (lifetime.lifetime == 0)
+                    var lifetime = (StunAttribute.Lifetime)refreshRequest.attributes.Find(a => a.Type == StunAttribute.Type.Lifetime)!;
+                    if (lifetime.Value == 0)
                     {
                         _connectionManager.DeleteEntry(data.RemoteEndPoint);
                         _logger.LogInformation("delete entry {address}:{port}", data.RemoteEndPoint.Address.ToString(), data.RemoteEndPoint.Port);
@@ -160,31 +160,31 @@ public class StunServerService : BackgroundService, IStunServerService
                         await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                     }
                 }
-                else if (message.Type == StunMessage.Type.CHANNEL_BIND)
+                else if (message.Type == StunMessage.Type.ChannelBind)
                 {
                     var channelBindMessage = (StunMessage.ChannelBind)message;
-                    var xorPeerAddress = (StunAttribute.XorPeerAddress)channelBindMessage.attributes.Find(a => a.Type == StunAttribute.Type.XOR_PEER_ADDRESS)!;
-                    _connectionManager.AddPeerEndpoint(data.RemoteEndPoint, xorPeerAddress.realEndpoint);
-                    var channelNumber = (StunAttribute.ChannelNumber)channelBindMessage.attributes.Find(a => a.Type == StunAttribute.Type.CHANNEL_NUMBER)!;
-                    _connectionManager.AddChannelNumber(data.RemoteEndPoint, channelNumber.channelNumber);
+                    var xorPeerAddress = (StunAttribute.XorPeerAddress)channelBindMessage.attributes.Find(a => a.Type == StunAttribute.Type.XorPeerAddress)!;
+                    _connectionManager.AddPeerEndpoint(data.RemoteEndPoint, xorPeerAddress.RealEndpoint);
+                    var channelNumber = (StunAttribute.ChannelNumber)channelBindMessage.attributes.Find(a => a.Type == StunAttribute.Type.ChannelNumber)!;
+                    _connectionManager.AddChannelNumber(data.RemoteEndPoint, channelNumber.Value);
                     byte[] res = channelBindMessage.CreateSuccessResponse();
                     _logger.LogDebug(listenPort, "res: {messageType} {bytes}", message.Type, BitConverter.ToString(res));
                     await _client.SendAsync(res, res.Length, data.RemoteEndPoint);
                 }
-                else if (message.Type == StunMessage.Type.SEND_INDICATION)
+                else if (message.Type == StunMessage.Type.SendIndication)
                 {
                     var sendIndication = (StunMessage.Send)message;
                     byte[] applicationData = sendIndication.ToApplicationDataBytes();
                     ConnectionEntry entry = _connectionManager.GetEntry(data.RemoteEndPoint)!;
                     _logger.LogDebug(listenPort, "send: {messageType} {bytes}", message.Type, BitConverter.ToString(applicationData));
-                    await entry.sss._client.SendAsync(applicationData, applicationData.Length, entry.peer!);
+                    await entry.RelayService._client.SendAsync(applicationData, applicationData.Length, entry.Peer!);
                 }
-                else if (message.Type == StunMessage.Type.DATA_INDICATION)
+                else if (message.Type == StunMessage.Type.DataIndication)
                 {
                     byte[] dataIndicationBytes = ((StunMessage.Data)message).CreateDataIndication(data.RemoteEndPoint);
                     ConnectionEntry entry = _connectionManager.GetEntryByPeer(data.RemoteEndPoint)!;
                     _logger.LogDebug(listenPort, "data: {messageType} {bytes}", message.Type, BitConverter.ToString(dataIndicationBytes));
-                    await _client.SendAsync(dataIndicationBytes, dataIndicationBytes.Length, entry.client);
+                    await _client.SendAsync(dataIndicationBytes, dataIndicationBytes.Length, entry.Client);
                 }
             }
             catch (StunMessage.StunMessageParseException)

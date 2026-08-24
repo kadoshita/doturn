@@ -34,7 +34,7 @@ public class DataTest
         int bodyLength = _expectedDataAttributeByteArray.Length + xorPeerAddressBytes.Length;
         Assert.Equal(20 + bodyLength + 8, result.Length);
 
-        // Type: DATA_INDICATION (0x0017)
+        // Type: DataIndication (0x0017)
         Assert.Equal(new byte[] { 0x00, 0x17 }, result[0..2]);
 
         // Message length = body + fingerprint(8)

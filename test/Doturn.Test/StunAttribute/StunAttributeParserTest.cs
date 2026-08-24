@@ -23,10 +23,10 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_errorCodeByteArray);
         var attribute = (ErrorCode)attributes[0];
-        Assert.Equal(Type.ERROR_CODE, attribute.Type);
-        Assert.Equal(0x04, attribute.errorClass);
-        Assert.Equal(0x01, attribute.errorCode);
-        Assert.Equal("Unauthorized", attribute.errorReasonPhrase);
+        Assert.Equal(Type.ErrorCode, attribute.Type);
+        Assert.Equal(0x04, attribute.Class);
+        Assert.Equal(0x01, attribute.Code);
+        Assert.Equal("Unauthorized", attribute.ReasonPhrase);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_fingerprintByteArray);
         var attribute = (Fingerprint)attributes[0];
-        Assert.Equal(Type.FINGERPRINT, attribute.Type);
+        Assert.Equal(Type.Fingerprint, attribute.Type);
     }
 
     [Fact]
@@ -42,8 +42,8 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_lifetimeByteArray);
         var attribute = (Lifetime)attributes[0];
-        Assert.Equal(Type.LIFETIME, attribute.Type);
-        Assert.Equal(600, attribute.lifetime);
+        Assert.Equal(Type.Lifetime, attribute.Type);
+        Assert.Equal(600, attribute.Value);
     }
 
     [Fact]
@@ -51,9 +51,9 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_mappedAddressByteArray);
         var attribute = (MappedAddress)attributes[0];
-        Assert.Equal(Type.MAPPED_ADDRESS, attribute.Type);
-        Assert.Equal("127.0.0.1", attribute.endpoint.Address.ToString());
-        Assert.Equal(20000, attribute.endpoint.Port);
+        Assert.Equal(Type.MappedAddress, attribute.Type);
+        Assert.Equal("127.0.0.1", attribute.Endpoint.Address.ToString());
+        Assert.Equal(20000, attribute.Endpoint.Port);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_messageIntegrityByteArray);
         var attribute = (MessageIntegrity)attributes[0];
-        Assert.Equal(Type.MESSAGE_INTEGRITY, attribute.Type);
+        Assert.Equal(Type.MessageIntegrity, attribute.Type);
     }
 
     [Fact]
@@ -69,8 +69,8 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_nonceByteArray);
         var attribute = (Nonce)attributes[0];
-        Assert.Equal(Type.NONCE, attribute.Type);
-        Assert.Equal("ho2ydw5qeeqsgasz", attribute.nonce);
+        Assert.Equal(Type.Nonce, attribute.Type);
+        Assert.Equal("ho2ydw5qeeqsgasz", attribute.Value);
     }
 
     [Fact]
@@ -78,8 +78,8 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_realmByteArray);
         var attribute = (Realm)attributes[0];
-        Assert.Equal(Type.REALM, attribute.Type);
-        Assert.Equal("example.com", attribute.realm);
+        Assert.Equal(Type.Realm, attribute.Type);
+        Assert.Equal("example.com", attribute.Value);
     }
 
     [Fact]
@@ -87,8 +87,8 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_requestedTransportByteArray);
         var attribute = (RequestedTransport)attributes[0];
-        Assert.Equal(Type.REQUESTED_TRANSPORT, attribute.Type);
-        Assert.Equal(Transport.UDP, attribute.transport);
+        Assert.Equal(Type.RequestedTransport, attribute.Type);
+        Assert.Equal(Transport.Udp, attribute.Value);
     }
 
     [Fact]
@@ -96,8 +96,8 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_softwareByteArray);
         var attribute = (Software)attributes[0];
-        Assert.Equal(Type.SOFTWARE, attribute.Type);
-        Assert.Equal("None", attribute.software);
+        Assert.Equal(Type.Software, attribute.Type);
+        Assert.Equal("None", attribute.Value);
     }
 
     [Fact]
@@ -105,8 +105,8 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_usernameByteArray);
         var attribute = (Username)attributes[0];
-        Assert.Equal(Type.USERNAME, attribute.Type);
-        Assert.Equal("username", attribute.username);
+        Assert.Equal(Type.Username, attribute.Type);
+        Assert.Equal("username", attribute.Value);
     }
 
     [Fact]
@@ -114,11 +114,11 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_xorMappedAddressByteArray);
         var attribute = (XorMappedAddress)attributes[0];
-        Assert.Equal(Type.XOR_MAPPED_ADDRESS, attribute.Type);
-        Assert.Equal("94.18.164.67", attribute.endpoint.Address.ToString());
-        Assert.Equal(28466, attribute.endpoint.Port);
-        Assert.Equal("127.0.0.1", attribute.realEndpoint.Address.ToString());
-        Assert.Equal(20000, attribute.realEndpoint.Port);
+        Assert.Equal(Type.XorMappedAddress, attribute.Type);
+        Assert.Equal("94.18.164.67", attribute.Endpoint.Address.ToString());
+        Assert.Equal(28466, attribute.Endpoint.Port);
+        Assert.Equal("127.0.0.1", attribute.RealEndpoint.Address.ToString());
+        Assert.Equal(20000, attribute.RealEndpoint.Port);
     }
 
     [Fact]
@@ -126,11 +126,11 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_xorPeerAddressByteArray);
         var attribute = (XorPeerAddress)attributes[0];
-        Assert.Equal(Type.XOR_PEER_ADDRESS, attribute.Type);
-        Assert.Equal("94.18.164.67", attribute.endpoint.Address.ToString());
-        Assert.Equal(28466, attribute.endpoint.Port);
-        Assert.Equal("127.0.0.1", attribute.realEndpoint.Address.ToString());
-        Assert.Equal(20000, attribute.realEndpoint.Port);
+        Assert.Equal(Type.XorPeerAddress, attribute.Type);
+        Assert.Equal("94.18.164.67", attribute.Endpoint.Address.ToString());
+        Assert.Equal(28466, attribute.Endpoint.Port);
+        Assert.Equal("127.0.0.1", attribute.RealEndpoint.Address.ToString());
+        Assert.Equal(20000, attribute.RealEndpoint.Port);
     }
 
     [Fact]
@@ -138,11 +138,11 @@ public class StunAttributeParserTest
     {
         System.Collections.Generic.List<IStunAttribute> attributes = StunAttributeParser.Parse(_xorRelayedAddressByteArray);
         var attribute = (XorRelayedAddress)attributes[0];
-        Assert.Equal(Type.XOR_RELAYED_ADDRESS, attribute.Type);
-        Assert.Equal("94.18.164.67", attribute.endpoint.Address.ToString());
-        Assert.Equal(28466, attribute.endpoint.Port);
-        Assert.Equal("127.0.0.1", attribute.realEndpoint.Address.ToString());
-        Assert.Equal(20000, attribute.realEndpoint.Port);
+        Assert.Equal(Type.XorRelayedAddress, attribute.Type);
+        Assert.Equal("94.18.164.67", attribute.Endpoint.Address.ToString());
+        Assert.Equal(28466, attribute.Endpoint.Port);
+        Assert.Equal("127.0.0.1", attribute.RealEndpoint.Address.ToString());
+        Assert.Equal(20000, attribute.RealEndpoint.Port);
     }
 
 }

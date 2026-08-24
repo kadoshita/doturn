@@ -1,48 +1,39 @@
 using System;
+using System.Buffers.Binary;
+using System.Text;
 
 namespace Doturn.StunAttribute;
 
 public class Software : StunAttributeBase
 {
-    public readonly Type type = Type.SOFTWARE;
-    public readonly string software;
-    public override Type Type => type;
-    public Software()
+    public string Value { get; }
+    public override Type Type => Type.Software;
+    public Software() : this("Doturn")
     {
-        software = "Doturn";
     }
     public Software(string software)
     {
-        this.software = software;
+        Value = software;
     }
 
     public override byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
-        byte[] softwareByteArray = System.Text.Encoding.ASCII.GetBytes(software);
+        byte[] softwareByteArray = Encoding.ASCII.GetBytes(Value);
         int length = softwareByteArray.Length;
         int paddingLength = 8 - (length % 8);
         if (paddingLength >= 8)
         {
             paddingLength = 0;
         }
-        byte[] lengthByteArray = BitConverter.GetBytes((short)length);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(lengthByteArray);
-        }
         byte[] res = new byte[2 + 2 + length + paddingLength];
-        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, lengthByteArray, softwareByteArray);
-        byte[] padding = { 0 };
-        for (int i = 0; i < paddingLength; i++)
-        {
-            ByteArrayUtils.MergeByteArray(ref res, res.Length - paddingLength, padding);
-        }
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(0, 2), (ushort)Type);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(2, 2), (ushort)length);
+        softwareByteArray.CopyTo(res, 4);
         return res;
     }
     public static Software Parse(byte[] data)
     {
-        string softwareStr = System.Text.Encoding.ASCII.GetString(data);
+        string softwareStr = Encoding.ASCII.GetString(data);
         return new Software(softwareStr);
     }
 }

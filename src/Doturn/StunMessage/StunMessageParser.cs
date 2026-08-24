@@ -24,29 +24,29 @@ public static class StunMessageParser
         short messageLength = BitConverter.ToInt16(messageLengthBytes);
         var header = new StunHeader(messageType, messageLength, magicCookieBytes, transactionIdBytes);
 
-        if (messageType == Type.BINDING)
+        if (messageType == Type.Binding)
         {
-            return new Binding(header.magicCookie, header.transactionId, appSettings);
+            return new Binding(header.MagicCookie, header.TransactionId, appSettings);
         }
-        else if (messageType == Type.ALLOCATE)
+        else if (messageType == Type.Allocate)
         {
-            return new Allocate(header.magicCookie, header.transactionId, messageBytes, appSettings);
+            return new Allocate(header.MagicCookie, header.TransactionId, messageBytes, appSettings);
         }
-        else if (messageType == Type.CREATE_PERMISSION)
+        else if (messageType == Type.CreatePermission)
         {
-            return new CreatePermission(header.magicCookie, header.transactionId, messageBytes, appSettings);
+            return new CreatePermission(header.MagicCookie, header.TransactionId, messageBytes, appSettings);
         }
-        else if (messageType == Type.REFRESH)
+        else if (messageType == Type.Refresh)
         {
-            return new Refresh(header.magicCookie, header.transactionId, messageBytes, appSettings);
+            return new Refresh(header.MagicCookie, header.TransactionId, messageBytes, appSettings);
         }
-        else if (messageType == Type.SEND_INDICATION)
+        else if (messageType == Type.SendIndication)
         {
             return new Send(messageBytes);
         }
-        else if (messageType == Type.CHANNEL_BIND)
+        else if (messageType == Type.ChannelBind)
         {
-            return new ChannelBind(header.magicCookie, header.transactionId, messageBytes, appSettings);
+            return new ChannelBind(header.MagicCookie, header.TransactionId, messageBytes, appSettings);
         }
         else
         {

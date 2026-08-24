@@ -1,61 +1,43 @@
-using System;
+using System.Buffers.Binary;
 using Doturn.StunMessage;
 
 namespace Doturn;
 
 public class StunHeader
 {
-    public readonly StunMessage.Type type;
-    public readonly short messageLength;
-    public readonly byte[] magicCookie;
-    public readonly byte[] transactionId;
+    private static readonly byte[] DefaultMagicCookie = new byte[] { 0x21, 0x12, 0xA4, 0x42 };
+
+    public StunMessage.Type Type { get; }
+    public short MessageLength { get; }
+    public byte[] MagicCookie { get; }
+    public byte[] TransactionId { get; }
+
     public StunHeader(StunMessage.Type type, short messageLength, byte[] transactionId)
+        : this(type, messageLength, DefaultMagicCookie, transactionId)
     {
-        this.type = type;
-        this.messageLength = messageLength;
-        this.transactionId = transactionId;
-        byte[] _magicCookie = BitConverter.GetBytes((int)0x2112a442);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(_magicCookie);
-        }
-        magicCookie = _magicCookie;
     }
     public StunHeader(StunMessage.Type type, short messageLength, byte[] magicCookie, byte[] transactionId)
     {
-        this.type = type;
-        this.messageLength = messageLength;
-        this.transactionId = transactionId;
-        this.magicCookie = magicCookie;
+        Type = type;
+        MessageLength = messageLength;
+        MagicCookie = magicCookie;
+        TransactionId = transactionId;
     }
     public StunHeader(byte[] data)
     {
-        byte[] messageTypeByteArray = data[0..2];
-        byte[] messageLengthByteArray = data[2..4];
-        magicCookie = data[4..8];
-        transactionId = data[8..20];
-        byte[] _magicCookie = BitConverter.GetBytes((int)0x2112a442);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(_magicCookie);
-            Array.Reverse(messageTypeByteArray);
-            Array.Reverse(messageLengthByteArray);
-        }
-        magicCookie = _magicCookie;
-        type = (StunMessage.Type)Enum.ToObject(typeof(StunMessage.Type), BitConverter.ToInt16(messageTypeByteArray));
-        messageLength = BitConverter.ToInt16(messageLengthByteArray);
+        Type = (StunMessage.Type)BinaryPrimitives.ReadUInt16BigEndian(data.AsSpan(0, 2));
+        MessageLength = BinaryPrimitives.ReadInt16BigEndian(data.AsSpan(2, 2));
+        MagicCookie = data[4..8];
+        TransactionId = data[8..20];
     }
 
     public byte[] ToBytes()
     {
-        byte[] typeByteArray = type.ToBytes();
-        byte[] messageLengthByteArray = BitConverter.GetBytes(messageLength);
-        if (BitConverter.IsLittleEndian)
-        {
-            Array.Reverse(messageLengthByteArray);
-        }
         byte[] res = new byte[20];
-        ByteArrayUtils.MergeByteArray(ref res, typeByteArray, messageLengthByteArray, magicCookie, transactionId);
+        BinaryPrimitives.WriteUInt16BigEndian(res.AsSpan(0, 2), (ushort)Type);
+        BinaryPrimitives.WriteInt16BigEndian(res.AsSpan(2, 2), MessageLength);
+        MagicCookie.CopyTo(res, 4);
+        TransactionId.CopyTo(res, 8);
         return res;
     }
 }

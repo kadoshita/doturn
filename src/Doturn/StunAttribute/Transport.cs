@@ -1,11 +1,11 @@
 namespace Doturn.StunAttribute;
 
-public enum Transport
+public enum Transport : byte
 {
-    UDP = 0x11,
-    TCP = 0x06
+    Udp = 0x11,
+    Tcp = 0x06
 }
-public static class TransportExtends
+public static class TransportExtensions
 {
     public static byte[] ToBytes(this Transport transport)
     {

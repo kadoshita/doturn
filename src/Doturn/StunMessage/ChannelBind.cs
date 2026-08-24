@@ -6,16 +6,15 @@ namespace Doturn.StunMessage;
 
 public class ChannelBind : StunMessageBase
 {
-    public readonly Type type;
     private readonly byte[] _magicCookie;
     public readonly byte[] transactionId;
     public readonly List<IStunAttribute> attributes = new();
     private readonly IAppSettings _appSettings;
-    public override Type Type => type;
+    public override Type Type { get; }
 
     public ChannelBind(byte[] magicCookie, byte[] transactionId, byte[] data, IAppSettings appSettings)
     {
-        type = Type.CHANNEL_BIND;
+        Type = Type.ChannelBind;
         _magicCookie = magicCookie;
         this.transactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
@@ -24,7 +23,7 @@ public class ChannelBind : StunMessageBase
     }
     public ChannelBind(byte[] magicCookie, byte[] transactionId, List<IStunAttribute> attributes, bool isSuccess, IAppSettings appSettings)
     {
-        type = isSuccess ? Type.CHANNEL_BIND_SUCCESS : Type.CHANNEL_BIND_ERROR;
+        Type = isSuccess ? Type.ChannelBindSuccess : Type.ChannelBindError;
         _magicCookie = magicCookie;
         this.transactionId = transactionId;
         //TODO 必要なattributeが揃っているかチェックする
@@ -33,12 +32,12 @@ public class ChannelBind : StunMessageBase
     }
     public byte[] CreateSuccessResponse()
     {
-        var stunHeader = new StunHeader(Type.CHANNEL_BIND_SUCCESS, 0, transactionId);
+        var stunHeader = new StunHeader(Type.ChannelBindSuccess, 0, transactionId);
         return stunHeader.ToBytes();
     }
     public byte[] CreateErrorResponse()
     {
-        var stunHeader = new StunHeader(Type.CHANNEL_BIND_ERROR, 0, transactionId);
+        var stunHeader = new StunHeader(Type.ChannelBindError, 0, transactionId);
         return stunHeader.ToBytes();
     }
     public override byte[] ToBytes()
